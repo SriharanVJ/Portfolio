@@ -37,19 +37,19 @@ export const Contact = () => {
     {
       icon: <Mail className="h-5 w-5" />,
       label: 'Email',
-      value: 'alex.johnson@example.com',
-      href: 'mailto:alex.johnson@example.com'
+      value: 'sriharanvijayakumarsk@gmail.com',
+      href: 'mailto:sriharanvijayakumarsk@gmail.com'
     },
     {
       icon: <Phone className="h-5 w-5" />,
       label: 'Phone',
-      value: '+1 (555) 123-4567',
-      href: 'tel:+15551234567'
+      value: '+91 6380695167',
+      href: 'tel:+916380695167'
     },
     {
       icon: <MapPin className="h-5 w-5" />,
       label: 'Location',
-      value: 'San Francisco, CA',
+      value: 'Chennai, India',
       href: null
     }
   ];
@@ -73,12 +73,12 @@ export const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-20">
+    <section id="contact" className="py-20 bg-blue-50/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Get In Touch</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Have a project in mind or want to collaborate? I'd love to hear from you. 
+            Have a project in mind or want to collaborate on AI solutions? I'd love to hear from you. 
             Let's create something amazing together.
           </p>
         </div>
@@ -86,7 +86,7 @@ export const Contact = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Information */}
           <div className="lg:col-span-1 space-y-6">
-            <Card>
+            <Card className="bg-white/70">
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
               </CardHeader>
@@ -112,7 +112,7 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white/70">
               <CardHeader>
                 <CardTitle>Follow Me</CardTitle>
               </CardHeader>
@@ -137,7 +137,7 @@ export const Contact = () => {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="bg-white/70">
               <CardHeader>
                 <CardTitle>Send me a message</CardTitle>
               </CardHeader>
@@ -215,7 +215,7 @@ export const Contact = () => {
         {/* Footer */}
         <div className="mt-16 pt-8 border-t text-center">
           <p className="text-muted-foreground">
-            © 2024 Alex Johnson. Built with React, TypeScript, and Tailwind CSS.
+            © 2024 Sriharan Vijayakumar. Built with React, TypeScript, and Tailwind CSS.
           </p>
         </div>
       </div>

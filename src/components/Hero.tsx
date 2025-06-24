@@ -13,25 +13,25 @@ export const Hero = () => {
 
   return (
     <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+      {/* Mild background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-transparent to-blue-50" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <div className="animate-fade-in">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
             Hi, I'm{' '}
-            <span className="text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Alex Johnson
+            <span className="text-primary bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Sriharan Vijayakumar
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Full-Stack Developer crafting digital experiences with modern technologies
+            Python Backend AI Developer crafting intelligent solutions with modern technologies
           </p>
           
           <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
-            I build scalable web applications using React, Node.js, and cloud technologies. 
-            Passionate about clean code, user experience, and solving complex problems.
+            I build scalable AI applications using Python, FastAPI, and LLMs. 
+            Passionate about backend development, RAG systems, and solving complex AI problems.
           </p>
 
           {/* CTA Buttons */}
@@ -65,7 +65,7 @@ export const Hero = () => {
               <Linkedin size={24} />
             </a>
             <a
-              href="mailto:alex@example.com"
+              href="mailto:sriharanvijayakumarsk@gmail.com"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Mail size={24} />
