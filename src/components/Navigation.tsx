@@ -43,10 +43,10 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b">
+    <nav className="fixed top-0 w-full bg-slate-900/90 backdrop-blur-md z-50 border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          <div className="text-2xl font-bold text-primary">
+          <div className="text-2xl font-bold text-blue-400">
             Dev.Portfolio
           </div>
 
@@ -56,8 +56,8 @@ export const Navigation = () => {
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  activeSection === item.id ? 'text-primary' : 'text-muted-foreground'
+                className={`text-sm font-medium transition-colors hover:text-blue-400 ${
+                  activeSection === item.id ? 'text-blue-400' : 'text-slate-300'
                 }`}
               >
                 {item.label}
@@ -68,7 +68,7 @@ export const Navigation = () => {
           {/* Mobile Navigation Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2"
+            className="md:hidden p-2 text-slate-300"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -76,13 +76,13 @@ export const Navigation = () => {
 
         {/* Mobile Navigation Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t border-slate-700">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`block w-full text-left py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  activeSection === item.id ? 'text-primary' : 'text-muted-foreground'
+                className={`block w-full text-left py-2 text-sm font-medium transition-colors hover:text-blue-400 ${
+                  activeSection === item.id ? 'text-blue-400' : 'text-slate-300'
                 }`}
               >
                 {item.label}

@@ -23,33 +23,33 @@ export const Experience = () => {
   ];
 
   return (
-    <section id="experience" className="py-20 bg-muted/30">
+    <section id="experience" className="py-20 bg-slate-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience</h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Experience</h2>
+          <p className="text-lg text-slate-300 max-w-3xl mx-auto">
             My professional journey building AI-powered backend solutions and intelligent systems.
           </p>
         </div>
 
         <div className="space-y-8">
           {experiences.map((exp, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index} className="hover:shadow-lg transition-shadow bg-slate-800/50 border-slate-600">
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
                   <div>
-                    <h3 className="text-xl font-semibold text-primary">{exp.position}</h3>
-                    <div className="flex items-center text-lg font-medium mt-1">
+                    <h3 className="text-xl font-semibold text-blue-400">{exp.position}</h3>
+                    <div className="flex items-center text-lg font-medium mt-1 text-white">
                       <Building className="h-4 w-4 mr-2" />
                       {exp.company}
                     </div>
                   </div>
                   <div className="flex flex-col md:items-end mt-2 md:mt-0">
-                    <div className="flex items-center text-muted-foreground mb-1">
+                    <div className="flex items-center text-slate-300 mb-1">
                       <Calendar className="h-4 w-4 mr-2" />
                       {exp.duration}
                     </div>
-                    <div className="flex items-center text-muted-foreground">
+                    <div className="flex items-center text-slate-300">
                       <MapPin className="h-4 w-4 mr-2" />
                       {exp.location}
                     </div>
@@ -58,13 +58,13 @@ export const Experience = () => {
               </CardHeader>
 
               <CardContent>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
+                <p className="text-slate-300 mb-4 leading-relaxed">
                   {exp.description}
                 </p>
 
                 <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Key Achievements:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <h4 className="font-semibold mb-2 text-white">Key Achievements:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-slate-300">
                     {exp.achievements.map((achievement, achIndex) => (
                       <li key={achIndex}>{achievement}</li>
                     ))}
@@ -72,10 +72,10 @@ export const Experience = () => {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">Technologies:</h4>
+                  <h4 className="font-semibold mb-2 text-white">Technologies:</h4>
                   <div className="flex flex-wrap gap-2">
                     {exp.technologies.map((tech, techIndex) => (
-                      <Badge key={techIndex} variant="secondary">
+                      <Badge key={techIndex} variant="secondary" className="bg-slate-700 text-slate-200 border-slate-600">
                         {tech}
                       </Badge>
                     ))}
