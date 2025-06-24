@@ -46,11 +46,11 @@ export const Projects = () => {
   ];
 
   return (
-    <section id="projects" className="py-20 bg-slate-900/50">
+    <section id="projects" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Featured Projects</h2>
-          <p className="text-lg text-slate-300 max-w-3xl mx-auto">
+          <p className="text-lg text-zinc-300 max-w-3xl mx-auto">
             Here are some of my recent projects that showcase my skills in Python backend development 
             and AI integration.
           </p>
@@ -60,7 +60,7 @@ export const Projects = () => {
           {/* Featured Projects */}
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {projects.filter(project => project.featured).map((project, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden bg-slate-800/50 border-slate-600">
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden bg-zinc-900 border-zinc-800">
                 <div className="relative overflow-hidden">
                   <img
                     src={project.image}
@@ -77,12 +77,12 @@ export const Projects = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  <p className="text-slate-300 mb-4 leading-relaxed">
+                  <p className="text-zinc-300 mb-4 leading-relaxed">
                     {project.description}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {project.technologies.map((tech, techIndex) => (
-                      <Badge key={techIndex} variant="secondary" className="bg-slate-700 text-slate-200 border-slate-600">
+                      <Badge key={techIndex} variant="secondary" className="bg-zinc-800 text-zinc-200 border-zinc-700">
                         {tech}
                       </Badge>
                     ))}
@@ -96,7 +96,7 @@ export const Projects = () => {
                       Live Demo
                     </a>
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="border-slate-600 text-slate-300 hover:bg-slate-700">
+                  <Button variant="outline" size="sm" asChild className="border-zinc-600 text-zinc-300 hover:bg-zinc-800">
                     <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
                       <Github className="mr-2 h-4 w-4" />
                       Code
@@ -112,22 +112,22 @@ export const Projects = () => {
             <h3 className="text-2xl font-semibold mb-6 text-white">Other Notable Projects</h3>
             <div className="grid md:grid-cols-2 gap-6">
               {projects.filter(project => !project.featured).map((project, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow bg-slate-800/50 border-slate-600">
+                <Card key={index} className="hover:shadow-lg transition-shadow bg-zinc-900 border-zinc-800">
                   <CardHeader className="pb-3">
                     <h4 className="text-lg font-semibold text-white">{project.title}</h4>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-slate-300 text-sm mb-3">
+                    <p className="text-zinc-300 text-sm mb-3">
                       {project.description}
                     </p>
                     <div className="flex flex-wrap gap-1 mb-3">
                       {project.technologies.slice(0, 3).map((tech, techIndex) => (
-                        <Badge key={techIndex} variant="outline" className="text-xs border-slate-600 text-slate-300">
+                        <Badge key={techIndex} variant="outline" className="text-xs border-zinc-600 text-zinc-300">
                           {tech}
                         </Badge>
                       ))}
                       {project.technologies.length > 3 && (
-                        <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                        <Badge variant="outline" className="text-xs border-zinc-600 text-zinc-300">
                           +{project.technologies.length - 3}
                         </Badge>
                       )}

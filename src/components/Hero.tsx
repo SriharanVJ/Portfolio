@@ -12,10 +12,7 @@ export const Hero = () => {
   };
 
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Dark background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900" />
-      
+    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <div className="animate-fade-in">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-white">
@@ -25,11 +22,11 @@ export const Hero = () => {
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-zinc-300 mb-8 max-w-3xl mx-auto">
             Python Backend AI Developer crafting intelligent solutions with modern technologies
           </p>
           
-          <p className="text-lg text-slate-400 mb-12 max-w-2xl mx-auto">
+          <p className="text-lg text-zinc-400 mb-12 max-w-2xl mx-auto">
             I build scalable AI applications using Python, FastAPI, and LLMs. 
             Passionate about backend development, RAG systems, and solving complex AI problems.
           </p>
@@ -40,7 +37,7 @@ export const Hero = () => {
               <Mail className="mr-2 h-5 w-5" />
               Get In Touch
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-3 border-slate-600 text-slate-300 hover:bg-slate-800">
+            <Button variant="outline" size="lg" className="text-lg px-8 py-3 border-zinc-600 text-zinc-300 hover:bg-zinc-900">
               <Download className="mr-2 h-5 w-5" />
               Download CV
             </Button>
@@ -52,7 +49,7 @@ export const Hero = () => {
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-400 hover:text-blue-400 transition-colors"
+              className="text-zinc-400 hover:text-blue-400 transition-colors"
             >
               <Github size={24} />
             </a>
@@ -60,13 +57,13 @@ export const Hero = () => {
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-400 hover:text-blue-400 transition-colors"
+              className="text-zinc-400 hover:text-blue-400 transition-colors"
             >
               <Linkedin size={24} />
             </a>
             <a
               href="mailto:sriharanvijayakumarsk@gmail.com"
-              className="text-slate-400 hover:text-blue-400 transition-colors"
+              className="text-zinc-400 hover:text-blue-400 transition-colors"
             >
               <Mail size={24} />
             </a>
@@ -78,7 +75,7 @@ export const Hero = () => {
           onClick={scrollToAbout}
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
         >
-          <ChevronDown size={32} className="text-slate-400" />
+          <ChevronDown size={32} className="text-zinc-400" />
         </button>
       </div>
     </section>

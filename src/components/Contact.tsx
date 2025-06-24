@@ -73,11 +73,11 @@ export const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-20 bg-slate-900/50">
+    <section id="contact" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Get In Touch</h2>
-          <p className="text-lg text-slate-300 max-w-3xl mx-auto">
+          <p className="text-lg text-zinc-300 max-w-3xl mx-auto">
             Have a project in mind or want to collaborate on AI solutions? I'd love to hear from you. 
             Let's create something amazing together.
           </p>
@@ -86,7 +86,7 @@ export const Contact = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Information */}
           <div className="lg:col-span-1 space-y-6">
-            <Card className="bg-slate-800/50 border-slate-600">
+            <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
                 <CardTitle className="text-white">Contact Information</CardTitle>
               </CardHeader>
@@ -95,16 +95,16 @@ export const Contact = () => {
                   <div key={index} className="flex items-center space-x-3">
                     <div className="text-blue-400">{info.icon}</div>
                     <div>
-                      <p className="font-medium text-slate-200">{info.label}</p>
+                      <p className="font-medium text-zinc-200">{info.label}</p>
                       {info.href ? (
                         <a
                           href={info.href}
-                          className="text-slate-300 hover:text-blue-400 transition-colors"
+                          className="text-zinc-300 hover:text-blue-400 transition-colors"
                         >
                           {info.value}
                         </a>
                       ) : (
-                        <p className="text-slate-300">{info.value}</p>
+                        <p className="text-zinc-300">{info.value}</p>
                       )}
                     </div>
                   </div>
@@ -112,7 +112,7 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800/50 border-slate-600">
+            <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
                 <CardTitle className="text-white">Follow Me</CardTitle>
               </CardHeader>
@@ -124,7 +124,7 @@ export const Contact = () => {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 border border-slate-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors text-slate-300"
+                      className="p-2 border border-zinc-700 rounded-lg hover:bg-blue-600 hover:text-white transition-colors text-zinc-300"
                       title={link.label}
                     >
                       {link.icon}
@@ -137,7 +137,7 @@ export const Contact = () => {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="bg-slate-800/50 border-slate-600">
+            <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
                 <CardTitle className="text-white">Send me a message</CardTitle>
               </CardHeader>
@@ -145,7 +145,7 @@ export const Contact = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium mb-2 text-slate-200">
+                      <label htmlFor="name" className="block text-sm font-medium mb-2 text-zinc-200">
                         Name *
                       </label>
                       <Input
@@ -155,11 +155,11 @@ export const Contact = () => {
                         onChange={handleChange}
                         required
                         placeholder="Your name"
-                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium mb-2 text-slate-200">
+                      <label htmlFor="email" className="block text-sm font-medium mb-2 text-zinc-200">
                         Email *
                       </label>
                       <Input
@@ -170,13 +170,13 @@ export const Contact = () => {
                         onChange={handleChange}
                         required
                         placeholder="your.email@example.com"
-                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium mb-2 text-slate-200">
+                    <label htmlFor="subject" className="block text-sm font-medium mb-2 text-zinc-200">
                       Subject *
                     </label>
                     <Input
@@ -186,12 +186,12 @@ export const Contact = () => {
                       onChange={handleChange}
                       required
                       placeholder="What's this about?"
-                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-2 text-slate-200">
+                    <label htmlFor="message" className="block text-sm font-medium mb-2 text-zinc-200">
                       Message *
                     </label>
                     <Textarea
@@ -202,7 +202,7 @@ export const Contact = () => {
                       required
                       rows={5}
                       placeholder="Tell me about your project or idea..."
-                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-400"
                     />
                   </div>
 
@@ -217,8 +217,8 @@ export const Contact = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-slate-700 text-center">
-          <p className="text-slate-400">
+        <div className="mt-16 pt-8 border-t border-zinc-800 text-center">
+          <p className="text-zinc-400">
             © 2024 Sriharan Vijayakumar. Built with React, TypeScript, and Tailwind CSS.
           </p>
         </div>
