@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ExternalLink, Github, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -8,18 +9,18 @@ export const Projects = () => {
   const projects = [
     {
       title: 'E-Commerce Platform',
-      description: 'A full-stack e-commerce solution with React, Node.js, and Stripe integration. Features include user authentication, product management, shopping cart, and order tracking.',
+      description: 'A comprehensive e-commerce solution with FastAPI backend, WhatsApp integration for customer communication, and Meta integration for social commerce features.',
       image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop',
-      technologies: ['React', 'Node.js', 'MongoDB', 'Stripe', 'Tailwind CSS'],
+      technologies: ['FastAPI', 'WhatsApp Integration', 'Meta Integration', 'Python', 'PostgreSQL'],
       liveUrl: 'https://example.com',
       githubUrl: 'https://github.com',
       featured: true
     },
     {
-      title: 'Task Management App',
-      description: 'A collaborative project management tool with real-time updates, drag-and-drop functionality, and team collaboration features.',
-      image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&h=400&fit=crop',
-      technologies: ['Vue.js', 'Express', 'Socket.io', 'PostgreSQL'],
+      title: 'Healthcare Appointment System',
+      description: 'An intelligent healthcare platform with AI-powered chatbot for appointment booking and rescheduling. Streamlines patient-doctor interactions with automated scheduling.',
+      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=600&h=400&fit=crop',
+      technologies: ['FastAPI', 'AI Chatbot', 'Appointment Booking', 'PostgreSQL', 'LLMs'],
       liveUrl: 'https://example.com',
       githubUrl: 'https://github.com',
       featured: true
@@ -34,10 +35,10 @@ export const Projects = () => {
       featured: false
     },
     {
-      title: 'Social Media Analytics',
-      description: 'Analytics dashboard for social media metrics with data visualization, automated reports, and performance insights.',
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop',
-      technologies: ['Next.js', 'D3.js', 'Python', 'Redis'],
+      title: 'RAG Chatbot System',
+      description: 'Advanced Retrieval-Augmented Generation chatbot with intelligent document processing and context-aware responses for enhanced user interactions.',
+      image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop',
+      technologies: ['Python', 'RAG', 'LLMs', 'FastAPI', 'AI Frameworks'],
       liveUrl: 'https://example.com',
       githubUrl: 'https://github.com',
       featured: false
@@ -50,8 +51,8 @@ export const Projects = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Projects</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Here are some of my recent projects that showcase my skills and passion for creating 
-            meaningful digital experiences.
+            Here are some of my recent projects that showcase my skills in Python backend development 
+            and AI integration.
           </p>
         </div>
 

@@ -7,43 +7,18 @@ import { Badge } from '@/components/ui/badge';
 export const Experience = () => {
   const experiences = [
     {
-      company: 'TechCorp Solutions',
-      position: 'Senior Full-Stack Developer',
-      duration: '2022 - Present',
-      location: 'San Francisco, CA',
-      description: 'Led development of enterprise-scale web applications serving 100k+ users. Architected microservices infrastructure and mentored junior developers.',
+      company: 'Yavar Tech Works',
+      position: 'Python Backend AI Developer',
+      duration: '7 Months',
+      location: 'Chennai, India',
+      description: 'Developed AI-powered backend solutions using Python and FastAPI. Built intelligent systems with LLMs and RAG implementations for various client projects.',
       achievements: [
-        'Improved application performance by 40% through code optimization',
-        'Led team of 5 developers in agile development practices',
-        'Implemented CI/CD pipelines reducing deployment time by 60%'
+        'Built e-commerce platform with WhatsApp and Meta integrations',
+        'Developed healthcare appointment system with AI chatbot',
+        'Implemented RAG systems for intelligent document processing',
+        'Created scalable backend APIs serving multiple client applications'
       ],
-      technologies: ['React', 'Node.js', 'AWS', 'Docker', 'PostgreSQL']
-    },
-    {
-      company: 'StartupXYZ',
-      position: 'Full-Stack Developer',
-      duration: '2020 - 2022',
-      location: 'Remote',
-      description: 'Built the core product from scratch using modern web technologies. Collaborated with designers and product managers to deliver user-centric solutions.',
-      achievements: [
-        'Developed MVP that secured $2M in Series A funding',
-        'Built real-time chat system handling 10k+ concurrent users',
-        'Reduced API response time by 50% through database optimization'
-      ],
-      technologies: ['Vue.js', 'Express', 'MongoDB', 'Socket.io', 'Redis']
-    },
-    {
-      company: 'Digital Agency Inc',
-      position: 'Frontend Developer',
-      duration: '2019 - 2020',
-      location: 'New York, NY',
-      description: 'Developed responsive websites and web applications for various clients. Focused on creating pixel-perfect, accessible user interfaces.',
-      achievements: [
-        'Delivered 15+ client projects with 100% on-time completion',
-        'Improved website loading speed by 35% on average',
-        'Implemented accessibility standards achieving WCAG 2.1 compliance'
-      ],
-      technologies: ['HTML/CSS', 'JavaScript', 'React', 'Sass', 'Webpack']
+      technologies: ['Python', 'FastAPI', 'PostgreSQL', 'Alembic', 'LLMs', 'RAG', 'AI Frameworks']
     }
   ];
 
@@ -53,7 +28,7 @@ export const Experience = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            My professional journey building software solutions and leading development teams.
+            My professional journey building AI-powered backend solutions and intelligent systems.
           </p>
         </div>
 

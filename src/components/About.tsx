@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Code, Database, Globe, Brain, Cloud, GitBranch } from 'lucide-react';
+import { Code, Database, Globe, Brain, GitBranch } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const About = () => {
@@ -8,7 +8,7 @@ export const About = () => {
     {
       category: 'Backend',
       icon: <Database className="h-6 w-6" />,
-      technologies: ['Python', 'FastAPI', 'PostgreSQL', 'Alembic', 'RESTful APIs']
+      technologies: ['Python', 'FastAPI', 'RESTful APIs', 'API Integration']
     },
     {
       category: 'AI & ML',
@@ -18,22 +18,17 @@ export const About = () => {
     {
       category: 'Languages',
       icon: <Code className="h-6 w-6" />,
-      technologies: ['Python', 'Java', 'C++', 'SQL', 'JavaScript']
+      technologies: ['Python', 'Java', 'C++', 'SQL']
     },
     {
       category: 'Tools',
       icon: <GitBranch className="h-6 w-6" />,
-      technologies: ['VS Code', 'Git', 'Postman', 'Docker', 'Linux']
+      technologies: ['VS Code', 'Git', 'Postman', 'Linux']
     },
     {
-      category: 'Databases',
+      category: 'Database',
       icon: <Database className="h-6 w-6" />,
-      technologies: ['PostgreSQL', 'MongoDB', 'Redis', 'Database Design', 'Query Optimization']
-    },
-    {
-      category: 'Cloud & DevOps',
-      icon: <Cloud className="h-6 w-6" />,
-      technologies: ['AWS', 'Docker', 'CI/CD', 'API Documentation', 'Testing']
+      technologies: ['PostgreSQL', 'Alembic']
     }
   ];
 
@@ -43,7 +38,7 @@ export const About = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">About Me</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            I'm a passionate Python Backend AI developer with 1 year of experience creating 
+            I'm a passionate Python Backend AI developer with 7 months of experience creating 
             intelligent solutions that make a difference. I love building scalable AI applications 
             and exploring the latest in machine learning and backend technologies.
           </p>
@@ -54,8 +49,8 @@ export const About = () => {
             <h3 className="text-2xl font-semibold mb-4">My Journey</h3>
             <p className="text-muted-foreground leading-relaxed">
               Started my journey in AI and backend development with a passion for solving complex problems. 
-              Over the past year, I've worked on diverse projects ranging from e-commerce platforms 
-              to healthcare solutions and intelligent chatbots.
+              Over the past 7 months at Yavar Tech Works, I've worked on diverse projects ranging from 
+              e-commerce platforms to healthcare solutions and intelligent chatbots.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               I specialize in building robust backend systems with Python and FastAPI, integrating 
@@ -69,7 +64,7 @@ export const About = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="font-medium">Experience:</span>
-                <span className="text-muted-foreground">1 Year</span>
+                <span className="text-muted-foreground">7 Months</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Specialization:</span>
