@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ExternalLink, Github, ArrowRight } from 'lucide-react';
+import { ExternalLink, Github, ArrowRight, Store, Hospital } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ export const Projects = () => {
       title: 'E-Commerce Platform',
       description: 'A comprehensive e-commerce solution with FastAPI backend, WhatsApp integration for customer communication, and Meta integration for social commerce features.',
       image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop',
+      icon: Store,
       technologies: ['FastAPI', 'WhatsApp Integration', 'Meta Integration', 'Python', 'PostgreSQL'],
       liveUrl: 'https://example.com',
       githubUrl: 'https://github.com',
@@ -20,6 +21,7 @@ export const Projects = () => {
       title: 'Healthcare Appointment System',
       description: 'An intelligent healthcare platform with AI-powered chatbot for appointment booking and rescheduling. Streamlines patient-doctor interactions with automated scheduling.',
       image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=600&h=400&fit=crop',
+      icon: Hospital,
       technologies: ['FastAPI', 'AI Chatbot', 'Appointment Booking', 'PostgreSQL', 'LLMs'],
       liveUrl: 'https://example.com',
       githubUrl: 'https://github.com',
@@ -59,52 +61,60 @@ export const Projects = () => {
         <div className="grid gap-8">
           {/* Featured Projects */}
           <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {projects.filter(project => project.featured).map((project, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden bg-zinc-900 border-zinc-800">
-                <div className="relative overflow-hidden">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                
-                <CardHeader>
-                  <h3 className="text-xl font-semibold group-hover:text-blue-400 transition-colors text-white">
-                    {project.title}
-                  </h3>
-                </CardHeader>
-                
-                <CardContent>
-                  <p className="text-zinc-300 mb-4 leading-relaxed">
-                    {project.description}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.technologies.map((tech, techIndex) => (
-                      <Badge key={techIndex} variant="secondary" className="bg-zinc-800 text-zinc-200 border-zinc-700">
-                        {tech}
-                      </Badge>
-                    ))}
+            {projects.filter(project => project.featured).map((project, index) => {
+              const IconComponent = project.icon;
+              return (
+                <Card key={index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden bg-zinc-900 border-zinc-800">
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {IconComponent && (
+                      <div className="absolute top-4 right-4 bg-blue-600 p-2 rounded-lg">
+                        <IconComponent className="h-6 w-6 text-white" />
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-                
-                <CardFooter className="flex gap-2">
-                  <Button size="sm" asChild className="bg-blue-600 hover:bg-blue-700">
-                    <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Live Demo
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild className="border-zinc-600 text-zinc-300 hover:bg-zinc-800">
-                    <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                      <Github className="mr-2 h-4 w-4" />
-                      Code
-                    </a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                  
+                  <CardHeader>
+                    <h3 className="text-xl font-semibold group-hover:text-blue-400 transition-colors text-white">
+                      {project.title}
+                    </h3>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <p className="text-zinc-300 mb-4 leading-relaxed">
+                      {project.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.technologies.map((tech, techIndex) => (
+                        <Badge key={techIndex} variant="secondary" className="bg-zinc-800 text-zinc-200 border-zinc-700">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                  
+                  <CardFooter className="flex gap-2">
+                    <Button size="sm" asChild className="bg-blue-600 hover:bg-blue-700">
+                      <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Live Demo
+                      </a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild className="border-zinc-600 text-zinc-300 hover:bg-zinc-800">
+                      <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                        <Github className="mr-2 h-4 w-4" />
+                        Code
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Other Projects */}
