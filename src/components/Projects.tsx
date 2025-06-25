@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ExternalLink, Github, ArrowRight, Store, Hospital } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -10,7 +9,6 @@ export const Projects = () => {
     {
       title: 'E-Commerce Platform',
       description: 'A comprehensive e-commerce solution with FastAPI backend, WhatsApp integration for customer communication, and Meta integration for social commerce features.',
-      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop',
       icon: Store,
       technologies: ['FastAPI', 'WhatsApp Integration', 'Meta Integration', 'Python', 'PostgreSQL'],
       liveUrl: 'https://example.com',
@@ -20,7 +18,6 @@ export const Projects = () => {
     {
       title: 'Healthcare Appointment System',
       description: 'An intelligent healthcare platform with AI-powered chatbot for appointment booking and rescheduling. Streamlines patient-doctor interactions with automated scheduling.',
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=600&h=400&fit=crop',
       icon: Hospital,
       technologies: ['FastAPI', 'AI Chatbot', 'Appointment Booking', 'PostgreSQL', 'LLMs'],
       liveUrl: 'https://example.com',
@@ -65,17 +62,9 @@ export const Projects = () => {
               const IconComponent = project.icon;
               return (
                 <Card key={index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden bg-zinc-900 border-zinc-800">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative overflow-hidden bg-zinc-800 h-48 flex items-center justify-center">
                     {IconComponent && (
-                      <div className="absolute top-4 right-4 bg-blue-600 p-2 rounded-lg">
-                        <IconComponent className="h-6 w-6 text-white" />
-                      </div>
+                      <IconComponent className="h-24 w-24 text-blue-400" />
                     )}
                   </div>
                   
