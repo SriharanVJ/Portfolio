@@ -64,7 +64,7 @@ export const About = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="font-medium text-zinc-200">Experience:</span>
-                <span className="text-zinc-300">7 Months</span>
+                <span className="text-zinc-300">7+ Months</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-zinc-200">Specialization:</span>

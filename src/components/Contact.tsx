@@ -58,12 +58,12 @@ export const Contact = () => {
     {
       icon: <Github className="h-5 w-5" />,
       label: 'GitHub',
-      href: 'https://github.com'
+      href: 'https://github.com/SriharanVJ'
     },
     {
       icon: <Linkedin className="h-5 w-5" />,
       label: 'LinkedIn',
-      href: 'https://linkedin.com'
+      href: 'www.linkedin.com/in/sriharan-vijayakumar-b936b326a'
     },
     {
       icon: <Twitter className="h-5 w-5" />,
@@ -219,7 +219,7 @@ export const Contact = () => {
         {/* Footer */}
         <div className="mt-16 pt-8 border-t border-zinc-800 text-center">
           <p className="text-zinc-400">
-            © 2024 Sriharan Vijayakumar. Built with React, TypeScript, and Tailwind CSS.
+            © 2025 Sriharan Vijayakumar.
           </p>
         </div>
       </div>

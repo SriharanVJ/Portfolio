@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Github, Linkedin, Mail, Download, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,25 +20,31 @@ export const Hero = () => {
               Sriharan Vijayakumar
             </span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-zinc-300 mb-8 max-w-3xl mx-auto">
             Python Backend AI Developer crafting intelligent solutions with modern technologies
           </p>
-          
+
           <p className="text-lg text-zinc-400 mb-12 max-w-2xl mx-auto">
-            I build scalable AI applications using Python, FastAPI, and LLMs. 
+            I build scalable AI applications using Python, FastAPI, and LLMs.
             Passionate about backend development, RAG systems, and solving complex AI problems.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700">
+            <Button
+              size="lg"
+              className="text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Mail className="mr-2 h-5 w-5" />
               Get In Touch
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-3 border-zinc-600 text-zinc-300 hover:bg-zinc-900">
-              <Download className="mr-2 h-5 w-5" />
-              Download CV
+
+            <Button asChild size="lg" className="text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white">
+              <a href="/SriharanVijayakumar_Resume.pdf" download>
+                <Download className="mr-2 h-5 w-5" />
+                Download CV
+              </a>
             </Button>
           </div>
 
@@ -68,16 +73,16 @@ export const Hero = () => {
               <Mail size={24} />
             </a>
           </div>
-        </div>
 
-        {/* Scroll indicator */}
-        <button
-          onClick={scrollToAbout}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
-        >
-          <ChevronDown size={32} className="text-zinc-400" />
-        </button>
-      </div>
-    </section>
+          {/* Scroll indicator */}
+          <button
+            onClick={scrollToAbout}
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
+          >
+            <ChevronDown size={32} className="text-zinc-400" />
+          </button>
+        </div>
+      </div> 
+    </section>  
   );
 };
