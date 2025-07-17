@@ -76,9 +76,11 @@ export const Contact = () => {
     <section id="contact" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Get In Touch</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white hover:text-sky-400 transition-colors duration-200">
+            Get In Touch
+          </h2>
           <p className="text-lg text-zinc-300 max-w-3xl mx-auto">
-            Have a project in mind or want to collaborate on AI solutions? I'd love to hear from you. 
+            Have a project in mind or want to collaborate on AI solutions? I'd love to hear from you.
             Let's create something amazing together.
           </p>
         </div>
