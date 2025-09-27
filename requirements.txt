@@ -49,7 +49,6 @@ kubernetes==33.1.0
 langchain==0.2.16
 langchain-community==0.2.12
 langchain-core==0.2.43
-langchain-openai==0.1.7
 langchain-text-splitters==0.2.4
 langgraph==0.0.64
 langsmith==0.1.147
