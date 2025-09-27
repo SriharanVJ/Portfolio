@@ -457,7 +457,8 @@ load_dotenv()
 ALLOWED_ORIGINS = [
     "http://localhost:5173",    # Your React/Vite development server
     "http://127.0.0.1:5173",
-    "http://localhost:8080"  # Alternative local development host
+    "http://localhost:8080",
+    "https://portfolio-git-latest-portfolio-sriharanvjs-projects.vercel.app/"# Alternative local development host
     # "https://your-portfolio-domain.com", # Add your live portfolio domain here
 ]
 
