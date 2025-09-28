@@ -160,7 +160,7 @@ def convert_text_to_speech(text):
     if not TTS_URL:
         return None, None
     if text:
-        text.replace("SRIHARAN VIJAYAKUMAR", "Sriharan Vijayakumar")
+        text = text.replace("SRIHARAN VIJAYAKUMAR", "Sriharan Vijayakumar")
     payload = {
         "text": text,
         "voice": "bm_daniel",
