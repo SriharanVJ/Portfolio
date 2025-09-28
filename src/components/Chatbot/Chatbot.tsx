@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { X } from 'lucide-react';
 
-// ⚠️ FIXED: MUST BE THE RAW CONTENT URL, NOT THE GITHUB BLOB PAGE
 // Ensure this is the RAW URL, typically starting with raw.githubusercontent.com
 const SRIHARAN_IMAGE_URL = 'https://raw.githubusercontent.com/SriharanVJ/Portfolio/main/Sriharan%20Photo.jpg'; 
 
@@ -20,14 +19,21 @@ const Chatbot: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // 1. Auto-Scroll: Create a ref for the message container
+  // Refs for auto-scroll and input focus
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // 2. Auto-Scroll: Effect to scroll to the bottom whenever the messages array changes
+  // Auto-Scroll Effect
   useEffect(() => {
-    // This scrolls the last element into view smoothly
     messagesEndRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Focus the input when the chat window opens
+  useEffect(() => {
+    if (isOpen) {
+        inputRef.current?.focus();
+    }
+  }, [isOpen]); 
 
   const playAudio = (url: string) => {
     try {
@@ -69,13 +75,15 @@ const Chatbot: React.FC = () => {
       setMessages(prev => [...prev, "Bot: Sorry, I'm having trouble connecting to the server."]);
     } finally {
       setLoading(false);
+      // Ensure focus is restored after the response
+      inputRef.current?.focus(); 
     }
   };
   
   return (
     <div className="fixed bottom-4 right-4 z-[9999]"> 
         
-        {/* Chat Toggle Button - SKY BLUE THEME */}
+        {/* Chat Toggle Button */}
         <button
             onClick={() => setIsOpen(!isOpen)}
             className="
@@ -86,10 +94,8 @@ const Chatbot: React.FC = () => {
             "
         >
             {isOpen ? (
-                // Show X icon when chat is open
                 <X size={24} className="text-white" />
             ) : (
-                // Show custom image when chat is closed
                 <img 
                     src={SRIHARAN_IMAGE_URL} 
                     alt="Sriharan Chatbot Icon" 
@@ -98,7 +104,7 @@ const Chatbot: React.FC = () => {
             )}
         </button>
 
-        {/* Chat Window Container (Visible when isOpen is true) - SKY BLUE BACKGROUND */}
+        {/* Chat Window Container */}
         {isOpen && (
             <div 
                 className="
@@ -107,7 +113,7 @@ const Chatbot: React.FC = () => {
                     shadow-2xl flex flex-col overflow-hidden border border-border
                 "
             >
-                {/* Chat Header - SKY BLUE THEME */}
+                {/* Chat Header */}
                 <div className="p-3 bg-sky-600 text-white font-poppins text-lg font-semibold flex justify-between items-center">
                     Chat with Sriharan's Bot
                     <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white">
@@ -115,17 +121,17 @@ const Chatbot: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Chat Messages - Apply Ref for Auto-Scroll */}
+                {/* Chat Messages */}
                 <div ref={messagesEndRef} className="flex-1 p-4 overflow-y-auto space-y-3">
                     {messages.length === 0 && (
                         <p className="text-muted-foreground text-sm">Hello! I'm Sriharan Personel Bot. Ask something about my Boss</p>
                     )}
                     {messages.map((msg, index) => (
-                        // Message Bubbles - Custom Sky Blue Matching Colors
+                        // Message Bubbles
                         <div key={index} className={`max-w-[85%] p-2 rounded-lg text-sm ${
                             msg.startsWith('User:') 
-                                ? 'ml-auto bg-sky-600 text-white' // User: Dark Sky Blue with White Text
-                                : 'mr-auto bg-sky-300 text-gray-800' // Bot: Light Sky Blue with Dark Text
+                                ? 'ml-auto bg-sky-600 text-white' 
+                                : 'mr-auto bg-sky-300 text-gray-800' 
                         }`}>
                             {msg.replace('User: ', '').replace('Bot: ', '')}
                         </div>
@@ -138,6 +144,7 @@ const Chatbot: React.FC = () => {
                 {/* Chat Input */}
                 <div className="p-3 border-t border-border flex gap-2">
                     <input
+                        ref={inputRef} 
                         type="text"
                         placeholder="Type a message..."
                         value={input}
@@ -146,9 +153,13 @@ const Chatbot: React.FC = () => {
                         disabled={loading}
                         className="flex-1 p-2 border border-input rounded-md bg-white focus:ring-2 focus:ring-sky-600 focus:border-sky-600"
                     />
-                    {/* Send Button - SKY BLUE THEME */}
+                    {/* Send Button - THE FIX IS HERE */}
                     <button 
                         onClick={sendMessage} 
+                        // 🚀 CRITICAL FIX: Prevent the button from taking focus when clicked.
+                        // This allows the input to remain focused (or immediately re-focused) 
+                        // without the user having to click again.
+                        onMouseDown={(e) => e.preventDefault()}
                         disabled={loading}
                         className="bg-sky-600 text-white p-2 rounded-md hover:bg-sky-700 disabled:opacity-50"
                     >
