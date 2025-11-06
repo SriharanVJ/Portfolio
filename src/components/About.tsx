@@ -1,7 +1,11 @@
-
 import React from 'react';
 import { Code, Database, Globe, Brain, GitBranch } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+
+// Mock components for shadcn/ui to make the file runnable
+const Card = ({ className = '', children }) => (
+    <div className={`rounded-xl border shadow ${className}`}>{children}</div>
+);
+const CardContent = ({ children, className = '' }) => <div className={`p-6 ${className}`}>{children}</div>; // Corrected mock: p-6, not p-6 pt-0
 
 export const About = () => {
   const skills = [
@@ -36,7 +40,7 @@ export const About = () => {
     <section id="about" className="py-20 bg-zinc-950 font-newroman">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white hover:text-sky-400 transition-colors duration-200">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-sky-400 hover:text-white transition-colors duration-200">
             About Me
           </h2>
 
@@ -47,9 +51,10 @@ export const About = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 mb-16">
+        {/* Increased horizontal gap from gap-12 to gap-20 */}
+        <div className="grid md:grid-cols-2 gap-20 mb-16">
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold mb-4 text-white hover:text-sky-400 transition-colors duration-200">
+            <h3 className="text-2xl font-semibold mb-4 text-sky-400 hover:text-white transition-colors duration-200">
               My Journey
             </h3>
             <p className="text-zinc-300 leading-relaxed">
@@ -65,26 +70,30 @@ export const About = () => {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-2xl font-semibold mb-4 text-white hover:text-sky-400 transition-colors duration-200">
+            <h3 className="text-2xl font-semibold mb-4 text-sky-400 hover:text-white transition-colors duration-200">
               Quick Facts
             </h3>
             <div className="space-y-3">
-              <div className="flex justify-between">
+              {/* Fact 1: Aligned grid layout */}
+              <div className="grid grid-cols-[140px_1fr] gap-x-6">
                 <span className="font-medium text-zinc-200 hover:text-sky-400 transition-colors duration-200">
                   Experience:
                 </span>
                 <span className="text-zinc-300">7+ Months</span>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-zinc-200">Specialization:</span>
+              {/* Fact 2: Aligned grid layout */}
+              <div className="grid grid-cols-[140px_1fr] gap-x-6">
+                <span className="font-medium text-zinc-200 hover:text-sky-400 transition-colors duration-200">Specialization:</span>
                 <span className="text-zinc-300">AI Backend Development</span>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-zinc-200">Current Focus:</span>
+              {/* Fact 3: Aligned grid layout */}
+              <div className="grid grid-cols-[140px_1fr] gap-x-6">
+                <span className="font-medium text-zinc-200 hover:text-sky-400 transition-colors duration-200">Current Focus:</span>
                 <span className="text-zinc-300">LLMs & RAG Systems</span>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-zinc-200">Location:</span>
+              {/* Fact 4: Aligned grid layout */}
+              <div className="grid grid-cols-[140px_1fr] gap-x-6">
+                <span className="font-medium text-zinc-200 hover:text-sky-400 transition-colors duration-200">Location:</span>
                 <span className="text-zinc-300">Chennai, India</span>
               </div>
             </div>
@@ -92,7 +101,7 @@ export const About = () => {
         </div>
 
         <div>
-          <h3 className="text-2xl font-semibold mb-8 text-center text-white hover:text-sky-400 transition-colors duration-200">
+          <h3 className="text-2xl font-semibold mb-8 text-center text-sky-400 hover:text-white transition-colors duration-200">
             Skills & Technologies
           </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -124,3 +133,4 @@ export const About = () => {
     </section>
   );
 };
+

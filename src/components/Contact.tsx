@@ -1,36 +1,126 @@
-
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Mail, Phone, MapPin, Send, Github, Linkedin, Twitter } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
 
-export const Contact = () => {
+// --- Configuration and Mock Components for Self-Contained File ---
+
+// NOTE: This URL must point to your live FastAPI server endpoint that handles mail sending.
+const FASTAPI_URL = 'http://localhost:8000'; 
+
+// Mock components for shadcn/ui to make the file runnable
+const Card = ({ className = '', children }) => (
+  <div className={`rounded-xl border shadow ${className}`}>{children}</div>
+);
+const CardHeader = ({ children }) => <div className="flex flex-col space-y-1.5 p-6">{children}</div>;
+const CardTitle = ({ className = '', children }) => <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`}>{children}</h3>;
+const CardContent = ({ children }) => <div className="p-6 pt-0">{children}</div>;
+
+const Button = ({ className = '', children, type, size = 'md', onClick, disabled, ...props }) => {
+    let padding = 'px-4 py-2';
+    if (size === 'lg') padding = 'px-6 py-3';
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            className={`
+                inline-flex items-center justify-center rounded-md text-sm font-medium 
+                ring-offset-background transition-colors focus-visible:outline-none 
+                focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+                disabled:pointer-events-none disabled:opacity-50
+                ${padding} ${className}
+            `}
+            {...props}
+        >
+            {children}
+        </button>
+    );
+};
+
+const Input = ({ className = '', ...props }) => (
+    <input
+        className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        {...props}
+    />
+);
+
+const Textarea = ({ className = '', ...props }) => (
+    <textarea
+        className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        {...props}
+    />
+);
+
+// Simple useToast mock (logs to console for testing)
+const useToast = () => {
+    const toast = (props) => {
+        console.log("TOAST:", props.title, "-", props.description);
+        // In a production app, this would trigger a visual notification
+    };
+    return { toast };
+};
+
+// --- Contact Form Component ---
+
+const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simulate form submission
-    toast({
-      title: "Message sent!",
-      description: "Thank you for your message. I'll get back to you soon.",
-    });
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    
+    // Simulate a loading toast (in a real implementation, this would update a visual component)
+    toast({
+      title: "Sending Message...",
+      description: "Please wait while your message is delivered.",
+    });
+
+    try {
+      // This sends the data to the FastAPI server at http://localhost:8000/contact
+      const response = await axios.post(`${FASTAPI_URL}/contact`, formData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Message Sent!",
+          description: "Thank you for your message. I'll get back to you soon.",
+        });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+         throw new Error(`Server responded with status ${response.status}`);
+      }
+
+    } catch (error) {
+      console.error('Email submission error:', error);
+      toast({
+        title: "Submission Failed",
+        description: "Sorry, the email server is unreachable. Please try again or use the direct email link.",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const contactInfo = [
@@ -208,9 +298,20 @@ export const Contact = () => {
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
-                    <Send className="mr-2 h-4 w-4" />
-                    Send Message
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={isSending}
+                  >
+                    {isSending ? (
+                      'Sending...' // Show sending state
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Message
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -228,3 +329,6 @@ export const Contact = () => {
     </section>
   );
 };
+
+// --- FIX: Using named export to match the Index.tsx import statement ---
+export { ContactForm as Contact }; 
