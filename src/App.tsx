@@ -18,24 +18,25 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ScrollProgress /> 
-      {/* <ScrollToTopButton /> */}
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        
-        {/* 🚀 INTEGRATION: Add the Chatbot component here */}
-        {/* Placing it here ensures it appears on all routes (Index and NotFound) 
-            and remains persistent, typically using fixed positioning for the UI. */}
-        <Chatbot /> 
-        
-      </BrowserRouter>
+      {/* Background wrapper */}
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-[#0f172a] text-gray-100">
+        <ScrollProgress /> 
+        <Toaster />
+        <Sonner />
+
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+
+          {/* Persistent Chatbot */}
+          <Chatbot />
+        </BrowserRouter>
+      </div>
     </TooltipProvider>
   </QueryClientProvider>
 );
+
 
 export default App;

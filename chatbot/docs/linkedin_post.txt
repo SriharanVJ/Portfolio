@@ -1,0 +1,29 @@
+🚀 Excited to share my latest project: A Smart RAG-Powered Chatbot! 
+
+I've built an intelligent chatbot that combines the power of Google's Gemini AI with Retrieval-Augmented Generation (RAG) technology to deliver contextually-aware responses using personal documents.
+
+✨ Key Features:
+• RAG implementation using FAISS vector database for semantic search
+• PDF document processing and chunking for knowledge base
+• Google Gemini 2.5 Flash API for natural language understanding
+• Sentence Transformers for embedding generation
+• FastAPI backend with CORS support
+• Text-to-speech integration for audio responses
+• Automatic uppercase text normalization
+• Exponential backoff retry mechanism for API calls
+
+🛠 Tech Stack:
+• Python, FastAPI, FAISS, Sentence Transformers
+• Google Gemini API, PyPDF2, NumPy
+• Vector embeddings and semantic search
+
+🔧 The system processes documents by:
+1. Loading PDF content and splitting into manageable chunks
+2. Creating vector embeddings for each chunk
+3. Storing embeddings in FAISS index for fast similarity search
+4. Retrieving relevant context when answering queries
+5. Generating contextual responses through the LLM
+
+This project demonstrates how to build a privacy-conscious, locally-hosted AI assistant that can answer questions based on personal documents while maintaining data security.
+
+#AI #Python #RAG #FastAPI #MachineLearning #NLP #VectorDatabases #Gemini #Portfolio #Coding #SoftwareDevelopment #Innovation #Technology #ArtificialIntelligence
