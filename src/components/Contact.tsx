@@ -153,7 +153,7 @@ const ContactForm = () => {
     {
       icon: <Linkedin className="h-5 w-5" />,
       label: 'LinkedIn',
-      href: 'www.linkedin.com/in/sriharan-vijayakumar-b936b326a'
+      href: 'https://www.linkedin.com/in/sriharan-vijayakumar-b936b326a'
     },
     {
       icon: <Twitter className="h-5 w-5" />,
