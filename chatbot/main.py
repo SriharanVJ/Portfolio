@@ -31,6 +31,7 @@ ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://portfolio-gray-xi-48.vercel.app/",
+    "https://sriharan.vercel.app/"
 ]
 
 # -------------------- FastAPI app --------------------

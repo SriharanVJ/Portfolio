@@ -12,7 +12,7 @@ export const Projects = () => {
       image: 'https://m.media-amazon.com/images/G/31/amazonservices/Blog/What_is_an_E-commerce_business.jpg',
       technologies: ['FastAPI', 'WhatsApp Integration', 'Meta Integration', 'Python', 'PostgreSQL'],
       liveUrl: 'https://example.com',
-      githubUrl: 'https://github.com',
+      githubUrl: 'https://github.com/sriharanvj/ecommerce-platform',
       featured: true
     },
     {
@@ -21,7 +21,7 @@ export const Projects = () => {
       image: 'https://media.istockphoto.com/id/1501183871/photo/doctors-registering-patients-at-the-hospital.jpg?s=612x612&w=0&k=20&c=mnjpoSNO69dNWp11zMmbmMx5S0ch4cG_d-8sMvKzKwI=',
       technologies: ['FastAPI', 'AI Chatbot', 'Appointment Booking', 'PostgreSQL', 'LLMs'],
       liveUrl: 'https://example.com',
-      githubUrl: 'https://github.com',
+      githubUrl: 'https://github.com/sriharanvj/healthcare-appointment-system',
       featured: true
     },
     {
@@ -30,7 +30,7 @@ export const Projects = () => {
       image: 'https://s3-alpha.figma.com/hub/file/6422877612/800966cc-495a-4d7f-8afe-e5f2a3e89456-cover.png',
       technologies: ['React', 'Chart.js', 'OpenWeather API', 'PWA'],
       liveUrl: 'https://example.com',
-      githubUrl: 'https://github.com',
+      githubUrl: 'https://github.com/sriharanvj/weather-dashboard',
       featured: true
     },
     {
@@ -47,7 +47,7 @@ export const Projects = () => {
     <section id="projects" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white hover:text-sky-400 transition-colors duration-200">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-sky-400 hover:text-white transition-colors duration-200">
             Featured Projects
           </h2>
           <p className="text-lg text-zinc-300 max-w-3xl mx-auto">
@@ -95,6 +95,28 @@ export const Projects = () => {
                         {tech}
                       </Badge>
                     ))}
+                  </div>
+                  <div className="flex gap-3">
+                    {project.liveUrl && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline text-sm flex items-center"
+                      >
+                        View Project <ExternalLink className="ml-1 h-3 w-3" />
+                      </a>
+                    )}
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline text-sm flex items-center"
+                      >
+                        <Github className="mr-1 h-3 w-3" /> Code
+                      </a>
+                    )}
                   </div>
                 </CardContent>
               </Card>

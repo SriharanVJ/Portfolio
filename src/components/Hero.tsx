@@ -82,7 +82,7 @@ export const Hero = () => {
         {/* Social Icons */}
         <div className="flex justify-center space-x-6 pt-6">
           <a
-            href="https://github.com"
+            href="https://github.com/sriharanvj"
             target="_blank"
             rel="noopener noreferrer"
             className="text-zinc-400 hover:text-blue-400 transition-colors"
@@ -90,7 +90,7 @@ export const Hero = () => {
             <Github size={24} />
           </a>
           <a
-            href="https://linkedin.com"
+            href="https://www.linkedin.com/in/sriharan-vijayakumar-b936b326a"
             target="_blank"
             rel="noopener noreferrer"
             className="text-zinc-400 hover:text-blue-400 transition-colors"

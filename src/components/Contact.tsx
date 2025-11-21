@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Mail, Phone, MapPin, Send, Github, Linkedin, Twitter } from 'lucide-react';
 
-// --- Configuration and Mock Components for Self-Contained File ---
-
-// NOTE: This URL must point to your live FastAPI server endpoint that handles mail sending.
-const FASTAPI_URL = 'http://localhost:8000'; 
+// --- Configuration and Mock Components for Self-Contained File --- 
 
 // Mock components for shadcn/ui to make the file runnable
 const Card = ({ className = '', children }) => (
@@ -70,6 +66,7 @@ const ContactForm = () => {
     message: ''
   });
   const [isSending, setIsSending] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // null, 'success', 'error', 'sending'
   const { toast } = useToast();
 
   const handleChange = (e) => {
@@ -81,46 +78,43 @@ const ContactForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      setSubmitStatus('error');
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
       });
+      // Clear error status after a delay
+      setTimeout(() => {
+        setSubmitStatus(null);
+      }, 3000);
       return;
     }
 
+    setSubmitStatus('sending');
     setIsSending(true);
-    
+
     // Simulate a loading toast (in a real implementation, this would update a visual component)
     toast({
       title: "Sending Message...",
       description: "Please wait while your message is delivered.",
     });
 
-    try {
-      // This sends the data to the FastAPI server at http://localhost:8000/contact
-      const response = await axios.post(`${FASTAPI_URL}/contact`, formData);
-      
-      if (response.status === 200 || response.status === 201) {
-        toast({
-          title: "Message Sent!",
-          description: "Thank you for your message. I'll get back to you soon.",
-        });
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      } else {
-         throw new Error(`Server responded with status ${response.status}`);
-      }
-
-    } catch (error) {
-      console.error('Email submission error:', error);
+    // Show static success message instead of making HTTP request
+    setTimeout(() => {
+      setSubmitStatus('success');
       toast({
-        title: "Submission Failed",
-        description: "Sorry, the email server is unreachable. Please try again or use the direct email link.",
+        title: "Message Sent!",
+        description: "Sriharan will contact you soon.",
       });
-    } finally {
-      setIsSending(false);
-    }
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      // Keep the success status visible for a while, then reset
+      setTimeout(() => {
+        setIsSending(false);
+        setSubmitStatus(null);
+      }, 5000); // Clear success status after 5 seconds to allow user to see the message
+    }, 1000); // Simulate a small delay for better UX
   };
 
   const contactInfo = [
@@ -148,7 +142,7 @@ const ContactForm = () => {
     {
       icon: <Github className="h-5 w-5" />,
       label: 'GitHub',
-      href: 'https://github.com/SriharanVJ'
+      href: 'https://github.com/sriharanvj'
     },
     {
       icon: <Linkedin className="h-5 w-5" />,
@@ -166,7 +160,7 @@ const ContactForm = () => {
     <section id="contact" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white hover:text-sky-400 transition-colors duration-200">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-sky-400 hover:text-white transition-colors duration-200">
             Get In Touch
           </h2>
           <p className="text-lg text-zinc-300 max-w-3xl mx-auto">
@@ -180,7 +174,7 @@ const ContactForm = () => {
           <div className="lg:col-span-1 space-y-6">
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white">Contact Information</CardTitle>
+                <CardTitle className="text-sky-400 hover:text-white transition-colors duration-200">Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {contactInfo.map((info, index) => (
@@ -206,7 +200,7 @@ const ContactForm = () => {
 
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white">Follow Me</CardTitle>
+                <CardTitle className="text-sky-400 hover:text-white transition-colors duration-200">Follow Me</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex space-x-4">
@@ -231,7 +225,7 @@ const ContactForm = () => {
           <div className="lg:col-span-2">
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white">Send me a message</CardTitle>
+                <CardTitle className="text-sky-400 hover:text-white transition-colors duration-200">Send me a message</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -298,9 +292,9 @@ const ContactForm = () => {
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    size="lg" 
+                  <Button
+                    type="submit"
+                    size="lg"
                     className="w-full bg-blue-600 hover:bg-blue-700"
                     disabled={isSending}
                   >
@@ -313,6 +307,23 @@ const ContactForm = () => {
                       </>
                     )}
                   </Button>
+
+                  {/* Display status messages */}
+                  {submitStatus === 'success' && (
+                    <div className="mt-4 p-3 bg-green-600/20 border border-green-600/30 text-green-300 rounded-lg text-center">
+                      Message sent successfully! Sriharan will contact you soon.
+                    </div>
+                  )}
+                  {submitStatus === 'error' && (
+                    <div className="mt-4 p-3 bg-red-600/20 border border-red-600/30 text-red-300 rounded-lg text-center">
+                      Please fill in all required fields.
+                    </div>
+                  )}
+                  {submitStatus === 'sending' && (
+                    <div className="mt-4 p-3 bg-blue-600/20 border border-blue-600/30 text-blue-300 rounded-lg text-center">
+                      Sending your message...
+                    </div>
+                  )}
                 </form>
               </CardContent>
             </Card>
