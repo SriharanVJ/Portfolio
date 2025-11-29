@@ -32,7 +32,12 @@ export const About = () => {
     {
       category: 'Database',
       icon: <Database className="h-6 w-6" />,
-      technologies: ['PostgreSQL', 'Alembic']
+      technologies: ['PostgreSQL', 'Alembic', 'NoSQL', 'Scylla']
+    },
+    {
+      category: 'Integration & Services',
+      icon: <Globe className="h-6 w-6" />,
+      technologies: ['Livekit', 'Notification', 'SSO']
     }
   ];
 
@@ -79,7 +84,7 @@ export const About = () => {
                 <span className="font-medium text-zinc-200 hover:text-sky-400 transition-colors duration-200">
                   Experience:
                 </span>
-                <span className="text-zinc-300">7+ Months</span>
+                <span className="text-zinc-300">1+ Year</span>
               </div>
               {/* Fact 2: Aligned grid layout */}
               <div className="grid grid-cols-[140px_1fr] gap-x-6">

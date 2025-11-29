@@ -9,7 +9,7 @@ export const Experience = () => {
     {
       company: 'Yavar Tech Works',
       position: 'Python Backend AI Developer',
-      duration: '7+ Months',
+      duration: '1+ Year',
       location: 'Chennai, India',
       description: "Developed AI-powered backend solutions using Python and FastAPI. \n Built intelligent systems with LLMs and RAG implementations for various client projects.",
 
