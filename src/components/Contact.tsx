@@ -160,9 +160,12 @@ const ContactForm = () => {
     <section id="contact" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-sky-400 hover:text-white transition-colors duration-200">
+          <a
+            href="mailto:sriharanvijayakumarsk@gmail.com"
+            className="block text-3xl md:text-4xl font-bold mb-4 text-sky-400 hover:text-white transition-colors duration-200 hover:underline cursor-pointer"
+          >
             Get In Touch
-          </h2>
+          </a>
           <p className="text-lg text-zinc-300 max-w-3xl mx-auto">
             Have a project in mind or want to collaborate on AI solutions? I'd love to hear from you.
             Let's create something amazing together.
