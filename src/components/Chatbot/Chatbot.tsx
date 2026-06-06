@@ -6,7 +6,7 @@ import { X, Send } from 'lucide-react';
 const SRIHARAN_IMAGE_URL = 'https://raw.githubusercontent.com/SriharanVJ/Portfolio/main/Sriharan%20Photo.jpg'; 
 
 // Set the base URL for your FastAPI server
-const FASTAPI_URL = 'http://localhost:8000'; 
+const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000'; 
 
 interface BotResponseData {
   response_text: string;

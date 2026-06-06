@@ -27,9 +27,13 @@ FASTAPI_PORT = int(os.getenv("FASTAPI_PORT", 8000))
 # CORS (adjust if needed)
 # CORS (adjust if needed)
 ALLOWED_ORIGINS = [
-    "http://localhost:8080",  # <--- ADD THIS LINE
+    "http://localhost:8080",
     "http://localhost:5173",
+    "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "http://54.79.126.219:5173",
+    "http://54.79.126.219:3000",
     "https://portfolio-gray-xi-48.vercel.app/",
     "https://sriharan.vercel.app/"
 ]
@@ -109,7 +113,7 @@ def retrieve_context(query: str, k=1) -> List[str]:
         return ["RAG index not initialized."]
     query_embedding = embedder.encode([query]).astype(np.float32)
     _, indices = index.search(query_embedding, k)
-    return [documents[i] for i in indices[0]]
+    return [documents[i] for i in indices[0]] 
 
 
 def convert_text_to_speech(text: str):
@@ -122,12 +126,18 @@ def convert_text_to_speech(text: str):
         "speed": 1.0,
     }
     try:
-        response = requests.post(f"{TTS_URL}/tts", json=payload)
+        response = requests.post(f"{TTS_URL}/tts", json=payload, timeout=5)
         response.raise_for_status()
         data = response.json()
         audio_path = data.get("audio_url")
         if audio_path:
             return f"{TTS_URL}{audio_path}", data.get("mouth_cues")
+        return None, None
+    except requests.exceptions.Timeout:
+        print(f"TTS timeout: Request to {TTS_URL} timed out after 5 seconds")
+        return None, None
+    except requests.exceptions.ConnectionError as e:
+        print(f"TTS connection error: Could not connect to {TTS_URL}")
         return None, None
     except Exception as e:
         print(f"TTS error: {e}")
@@ -208,7 +218,14 @@ async def chat_endpoint(request: ChatRequest):
             # ✅ Fix uppercase responses
             answer = normalize_text_case(answer)
 
-            audio_url, _ = convert_text_to_speech(answer)
+            # Try TTS but don't block response if it fails
+            audio_url = None
+            try:
+                audio_url, _ = convert_text_to_speech(answer)
+            except Exception as tts_error:
+                print(f"TTS failed (non-blocking): {tts_error}")
+                audio_url = None
+
             return ChatResponse(response_text=answer, audio_url=audio_url)
         except Exception as e:
             print(f"Gemini error (attempt {attempt + 1}): {e}")
