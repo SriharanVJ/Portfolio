@@ -7,11 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ScrollProgress from "@/components/ScrollProgress"; 
-import Chatbot from './components/Chatbot/Chatbot'; // Your Chatbot component
-
-// import ScrollToTopButton from "@/components/ScrollToTopButton";
-
+import ScrollProgress from "@/components/ScrollProgress";
+import Chatbot from './components/Chatbot/Chatbot';
 
 const queryClient = new QueryClient();
 
@@ -19,8 +16,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       {/* Background wrapper */}
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-[#0f172a] text-gray-100">
-        <ScrollProgress /> 
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-[#030014] text-gray-100">
+        <ScrollProgress />
         <Toaster />
         <Sonner />
 
@@ -37,6 +34,5 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
-
 
 export default App;
