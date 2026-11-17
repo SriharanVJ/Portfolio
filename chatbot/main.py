@@ -20,6 +20,8 @@ load_dotenv()
 
 # Configurable constants
 PDF_FILE_PATH = os.getenv("FILE_PATH", "")  # your single PDF file
+if PDF_FILE_PATH and not os.path.isabs(PDF_FILE_PATH):
+    PDF_FILE_PATH = os.path.join(os.path.dirname(__file__), PDF_FILE_PATH)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 TTS_URL = os.getenv("TTS_URL", "")
 FASTAPI_PORT = int(os.getenv("FASTAPI_PORT", 8000))
@@ -34,8 +36,8 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://54.79.126.219:5173",
     "http://54.79.126.219:3000",
-    "https://portfolio-gray-xi-48.vercel.app/",
-    "https://sriharan.vercel.app/"
+    "https://portfolio-gray-xi-48.vercel.app",
+    "https://sriharan.vercel.app"
 ]
 
 # -------------------- FastAPI app --------------------

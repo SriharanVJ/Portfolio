@@ -2,12 +2,12 @@ fastapi==0.115.0
 uvicorn==0.30.6
 google-genai==1.39.1
 sentence-transformers==5.1.1
-faiss-cpu==1.8.0.post1
+faiss-cpu==1.12.0
 PyPDF2==3.0.1
 python-docx==1.2.0
 python-dotenv==1.1.1
 requests==2.32.5
-numpy==1.26.4
+numpy==2.2.6
 # Used for the file upload (File(...))
 python-multipart==0.0.20
 # Used for asyncio.sleep (though often a dependency, keeping it explicit for clarity)
