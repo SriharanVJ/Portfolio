@@ -6,6 +6,7 @@ import faiss
 import numpy as np
 import PyPDF2
 import asyncio
+import time
 import requests
 from sentence_transformers import SentenceTransformer
 import google.genai
@@ -208,9 +209,10 @@ GREETING_PROMPT = "__greeting__"
 GREETING = "Hi, I'm Sri, Sriharan's assistant. Ask me about his projects, skills or experience."
 
 
-def generate_answer(user_input: str) -> str:
+def generate_answer(user_input: str, timings: Optional[dict] = None) -> str:
     """RAG retrieve + LLM answer (Gemini cloud or Ollama local, per LLM_PROVIDER).
-    Blocking; async callers should run it via asyncio.to_thread."""
+    Blocking; async callers should run it via asyncio.to_thread. `timings`, when
+    given, receives the per-stage seconds ("rag", "llm") for latency logging."""
     if user_input == GREETING_PROMPT:
         return GREETING
     if LLM_PROVIDER == "gemini" and client is None:
@@ -218,7 +220,9 @@ def generate_answer(user_input: str) -> str:
     if index is None:
         raise RuntimeError("FAISS index missing. Check PDF file.")
 
+    t0 = time.perf_counter()
     context = "\n".join(retrieve_context(user_input))
+    rag_s = time.perf_counter() - t0
 
     # Persona rules are shared by both providers: "Sri", the third-person AI
     # assistant on the portfolio. Details about Sriharan (companies, years,
@@ -320,6 +324,7 @@ def generate_answer(user_input: str) -> str:
     )
     body = f"Context:\n{context}\n\nQuestion:\n{user_input}"
 
+    t1 = time.perf_counter()
     if LLM_PROVIDER == "ollama":
         answer = ask_ollama(rules, body)
     else:
@@ -330,6 +335,10 @@ def generate_answer(user_input: str) -> str:
             config=google.genai.types.GenerateContentConfig(temperature=0.7)
         )
         answer = response.text.strip()
+    llm_s = time.perf_counter() - t1
+    if timings is not None:
+        timings["rag"] = rag_s
+        timings["llm"] = llm_s
 
     # ✅ Fix uppercase responses
     return normalize_text_case(answer)

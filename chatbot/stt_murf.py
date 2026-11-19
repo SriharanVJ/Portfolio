@@ -131,6 +131,7 @@ def _schedule_turn(state, texts):
         state["held_texts"] = []
         return
     hold = TURN_HOLD_SECONDS if _looks_unfinished(joined) else 0.0
+    scheduled_at = time.perf_counter()
 
     async def fire():
         me = asyncio.current_task()
@@ -141,6 +142,10 @@ def _schedule_turn(state, texts):
             return
         state["turn_timer"] = None
         state["held_texts"] = []
+        # Actual seconds this turn sat on hold (extend_turn_hold re-arms the
+        # timer, so measure from the last (re)schedule) — surfaced by voice_ws's
+        # [TIMING] line
+        state["stt_hold_s"] = time.perf_counter() - scheduled_at
         spawn = state.get("spawn_answer")
         if spawn:
             print(f"[VOICE][MURF] turn complete -> answer: '{joined[:70]}'")
@@ -200,6 +205,7 @@ def make_murf_relay(murf_ws, browser_ws, state, spawn_answer, trigger_barge_in):
     state["spawn_answer"] = spawn_answer
 
     async def murf_to_browser():
+        last_partial_at = None  # for Murf endpointing latency (last partial -> final)
         async for message in murf_ws:
             if not isinstance(message, str):
                 continue
@@ -226,6 +232,7 @@ def make_murf_relay(murf_ws, browser_ws, state, spawn_answer, trigger_barge_in):
                         if etype == "final":
                             spawn_answer(text)
                 elif etype == "partial" and text:
+                    last_partial_at = time.perf_counter()
                     print(f"[VOICE][MURF] partial: '{text[:70]}'")
                     await _safe_send_json(browser_ws, {"type": "partial", "text": text})
                 elif etype == "final" and text:
@@ -236,6 +243,11 @@ def make_murf_relay(murf_ws, browser_ws, state, spawn_answer, trigger_barge_in):
                     if time.monotonic() < state.get("ignore_finals_until", 0.0):
                         print(f"[VOICE][MURF] final in barge-in grace, dropped: '{text[:70]}'")
                     else:
+                        # Murf endpointing latency: its VAD needed this long of
+                        # silence after the last partial before finalizing the
+                        # turn — surfaced by voice_ws's [TIMING] line
+                        if last_partial_at is not None:
+                            state["stt_final_s"] = time.perf_counter() - last_partial_at
                         # Server-side VAD says the user finished: route it
                         # through the turn hold (unfinished questions wait
                         # briefly and merge with any follow-up final)
