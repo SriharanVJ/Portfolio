@@ -447,7 +447,9 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-7 right-7 z-[9999]">
+    // bottom/right-12 (48px): the ring extends 40px past the button, so the
+    // old 28px margin clipped it at the screen corner
+    <div className="fixed bottom-12 right-12 z-[9999]">
       {/* Component-scoped styles: the rotating ring + voice-reactive avatar.
           --mic-lvl / --tts-lvl (0..1) are written every frame by the rAF loop
           in startSession, so these effects track the actual audio. */}
@@ -457,11 +459,12 @@ const Chatbot: React.FC = () => {
         .avatar-bubble { transform: scale(calc(1 + var(--mic-lvl, 0) * 0.25)); }
         .avatar-glow {
           opacity: calc(var(--tts-lvl, 0) * 0.85);
-          transform: scale(calc(0.75 + var(--tts-lvl, 0) * 0.55));
+          /* translate before scale = constant optical nudge (up-left) at any scale */
+          transform: translate(-2px, -3px) scale(calc(0.75 + var(--tts-lvl, 0) * 0.55));
         }
         .avatar-ring {
           opacity: calc(var(--tts-lvl, 0) * 0.9);
-          transform: scale(calc(1 + var(--tts-lvl, 0) * 0.3));
+          transform: translate(-2px, -3px) scale(calc(1 + var(--tts-lvl, 0) * 0.3));
         }
         @keyframes think-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
         .thinking-pulse { animation: think-pulse 1.8s ease-in-out infinite; }
@@ -562,17 +565,22 @@ const Chatbot: React.FC = () => {
           </div>
 
           {/* Avatar stage — photo bubbles with the user's voice while
-              listening, glows with the bot's voice while speaking */}
+              listening, glows with the bot's voice while speaking. The glow
+              and ring anchor to the photo box with negative insets; as bare
+              absolute children of this flex stage their static position lands
+              at the stage centre, ~16px below the photo's centre. */}
           <div ref={avatarWrapRef} className="relative flex-1 flex flex-col items-center justify-center gap-3 px-4">
-            <div className="avatar-glow absolute w-44 h-44 rounded-full bg-forest-400/60 blur-2xl pointer-events-none" />
-            <div className="avatar-ring absolute w-32 h-32 rounded-full border-2 border-forest-400 pointer-events-none" />
-            <img
-              src={SRIHARAN_IMAGE_URL}
-              alt="Sriharan"
-              className={`relative w-28 h-28 rounded-full object-cover border-2 border-white/25 shadow-xl ${
-                status === 'listening' ? 'avatar-bubble' : ''
-              } ${status === 'thinking' ? 'thinking-pulse' : ''}`}
-            />
+            <div className="relative w-28 h-28">
+              <div className="avatar-glow absolute -inset-8 rounded-full bg-forest-400/60 blur-2xl pointer-events-none" />
+              <div className="avatar-ring absolute -inset-2 rounded-full border-2 border-forest-400 pointer-events-none" />
+              <img
+                src={SRIHARAN_IMAGE_URL}
+                alt="Sriharan"
+                className={`relative w-28 h-28 rounded-full object-cover border-2 border-white/25 shadow-xl ${
+                  status === 'listening' ? 'avatar-bubble' : ''
+                } ${status === 'thinking' ? 'thinking-pulse' : ''}`}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <Mic size={14} className={status === 'listening' ? 'text-forest-400' : 'text-forest-400/60'} />
               <span className="text-sm font-mono text-forest-300">{statusLabel[status]}</span>
