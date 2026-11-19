@@ -24,6 +24,18 @@ const BARGE_COOLDOWN_MS = 800;   // one interrupt per utterance, not a machine g
 
 type Status = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
 
+// RMS (0..~0.5) of an AnalyserNode's time-domain data — drives the avatar effects
+const analyserRms = (analyser: AnalyserNode | null, buf: Uint8Array): number => {
+  if (!analyser) return 0;
+  analyser.getByteTimeDomainData(buf);
+  let sum = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = (buf[i] - 128) / 128;
+    sum += v * v;
+  }
+  return Math.sqrt(sum / buf.length);
+};
+
 interface Turn {
   question: string;
   answer: string;
@@ -51,6 +63,12 @@ const Chatbot: React.FC = () => {
   const speakingRef = useRef(false);   // bot audio is streaming/playing (barge-in armed)
   const bargeArmAtRef = useRef(0);     // when the current playback started
   const vadRef = useRef<MicVAD | null>(null); // Silero VAD (neural speech detection)
+  // Voice-reactive avatar: analysers on the mic and playback graphs feed CSS
+  // variables (--mic-lvl / --tts-lvl) at 60fps without React re-renders
+  const micAnalyserRef = useRef<AnalyserNode | null>(null);
+  const playAnalyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const avatarWrapRef = useRef<HTMLDivElement | null>(null);
   const closingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -107,7 +125,8 @@ const Chatbot: React.FC = () => {
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    // Route through the analyser so the avatar glow tracks the bot's voice
+    source.connect(playAnalyserRef.current ?? ctx.destination);
 
     // Chain chunks back-to-back; resync the schedule if we've fallen behind
     const now = ctx.currentTime;
@@ -146,6 +165,11 @@ const Chatbot: React.FC = () => {
 
     const source = ctx.createMediaStreamSource(stream);
     micSourceRef.current = source;
+    // Mic analyser: the avatar bubble tracks the user's voice while listening
+    const micAnalyser = ctx.createAnalyser();
+    micAnalyser.fftSize = 512;
+    source.connect(micAnalyser);
+    micAnalyserRef.current = micAnalyser;
     const processor = ctx.createScriptProcessor(4096, 1, 1);
     processorRef.current = processor;
 
@@ -267,6 +291,7 @@ const Chatbot: React.FC = () => {
   const stopMic = useCallback(() => {
     vadRef.current?.destroy().catch(() => undefined);
     vadRef.current = null;
+    micAnalyserRef.current = null;
     processorRef.current?.disconnect();
     micSourceRef.current?.disconnect();
     processorRef.current = null;
@@ -307,6 +332,30 @@ const Chatbot: React.FC = () => {
       playbackCtxRef.current = new AudioContext();
     }
     nextStartRef.current = 0;
+
+    // Playback analyser feeds the avatar glow while the bot speaks
+    const playAnalyser = playbackCtxRef.current.createAnalyser();
+    playAnalyser.fftSize = 512;
+    playAnalyser.connect(playbackCtxRef.current.destination);
+    playAnalyserRef.current = playAnalyser;
+
+    // 60fps avatar driver: fast attack, slow release, written straight to CSS
+    // variables so the effects track the voice without React re-renders
+    const micBuf = new Uint8Array(256);
+    const playBuf = new Uint8Array(256);
+    let micLvl = 0;
+    let ttsLvl = 0;
+    const tick = () => {
+      micLvl = Math.max(analyserRms(micAnalyserRef.current, micBuf) * 5, micLvl * 0.85);
+      ttsLvl = Math.max(analyserRms(playAnalyserRef.current, playBuf) * 5, ttsLvl * 0.85);
+      const el = avatarWrapRef.current;
+      if (el) {
+        el.style.setProperty('--mic-lvl', Math.min(1, micLvl).toFixed(3));
+        el.style.setProperty('--tts-lvl', Math.min(1, ttsLvl).toFixed(3));
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
 
     const ws = new WebSocket(VOICE_WS_URL);
     ws.binaryType = 'arraybuffer';
@@ -372,6 +421,11 @@ const Chatbot: React.FC = () => {
 
   const stopSession = useCallback(() => {
     closingRef.current = true;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    playAnalyserRef.current = null;
     wsRef.current?.close();
     wsRef.current = null;
     stopMic();
@@ -419,41 +473,84 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999]">
+    <div className="fixed bottom-7 right-7 z-[9999]">
+      {/* Component-scoped styles: the rotating ring + voice-reactive avatar.
+          --mic-lvl / --tts-lvl (0..1) are written every frame by the rAF loop
+          in startSession, so these effects track the actual audio. */}
+      <style>{`
+        @keyframes voice-spin { to { transform: rotate(360deg); } }
+        .voice-ring { animation: voice-spin 14s linear infinite; }
+        .avatar-bubble { transform: scale(calc(1 + var(--mic-lvl, 0) * 0.25)); }
+        .avatar-glow {
+          opacity: calc(var(--tts-lvl, 0) * 0.85);
+          transform: scale(calc(0.75 + var(--tts-lvl, 0) * 0.55));
+        }
+        .avatar-ring {
+          opacity: calc(var(--tts-lvl, 0) * 0.9);
+          transform: scale(calc(1 + var(--tts-lvl, 0) * 0.3));
+        }
+        @keyframes think-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+        .thinking-pulse { animation: think-pulse 1.8s ease-in-out infinite; }
+      `}</style>
 
-      {/* Voice Toggle Button - Pure Black background */}
-      <button
-        onClick={toggleOpen}
-        className="
-            w-14 h-14 rounded-full bg-black text-white shadow-lg
-            flex items-center justify-center transition-transform duration-300
-            hover:scale-110 focus:outline-none
-            relative z-50 p-0 overflow-hidden
-        "
-      >
-        {isOpen ? (
-          <X size={24} className="text-white" />
-        ) : (
-          <img
-            src={SRIHARAN_IMAGE_URL}
-            alt="Sriharan Voice Bot Icon"
-            className="w-full h-full object-cover rounded-full"
-          />
+      {/* Voice Toggle Button — photo with a rotating "talk to me" ring */}
+      <div className="relative">
+        {!isOpen && (
+          <svg
+            className="voice-ring absolute -inset-7 w-full h-full pointer-events-none"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <defs>
+              <path
+                id="talk-circle"
+                fill="none"
+                d="M 50,50 m -42,0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0"
+              />
+            </defs>
+            <text
+              className="fill-white/70"
+              style={{ fontSize: 8.2, letterSpacing: 2.4, textTransform: 'uppercase', fontFamily: 'monospace' }}
+            >
+              <textPath href="#talk-circle" textLength="262">
+                Talk to me • Talk to me • Talk to me •
+              </textPath>
+            </text>
+          </svg>
         )}
-      </button>
+        <button
+          onClick={toggleOpen}
+          className="
+              w-20 h-20 rounded-full bg-black text-white shadow-lg
+              flex items-center justify-center transition-transform duration-300
+              hover:scale-110 focus:outline-none
+              relative z-50 p-0 overflow-hidden border border-white/20
+          "
+        >
+          {isOpen ? (
+            <X size={28} className="text-white" />
+          ) : (
+            <img
+              src={SRIHARAN_IMAGE_URL}
+              alt="Sriharan Voice Bot Icon"
+              className="w-full h-full object-cover rounded-full"
+            />
+          )}
+        </button>
+      </div>
 
-      {/* Voice Window Container - Pure Black background, blue text */}
+      {/* Voice Window — transparent glass, avatar centred */}
       {isOpen && (
         <div
           className="
-              absolute bottom-0 right-0 transform translate-y-[-70px]
-              w-80 h-[450px] bg-black text-forest-400 rounded-lg
-              shadow-2xl flex flex-col overflow-hidden border border-gray-700
+              absolute bottom-0 right-0 transform translate-y-[-112px]
+              w-80 h-[480px] bg-black/70 backdrop-blur-2xl text-forest-400 rounded-3xl
+              shadow-2xl flex flex-col overflow-hidden border border-white/15
           "
         >
           {/* Error / Maintenance Popup */}
           {errorInfo && (
-            <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-4 z-20 rounded-lg">
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-xl flex flex-col items-center justify-center p-4 z-20">
               <div className="w-20 h-20 rounded-full border-4 border-forest-600 mb-4 overflow-hidden">
                 <img src={SRIHARAN_IMAGE_URL} alt="Bot Icon" className="w-full h-full object-cover" />
               </div>
@@ -478,18 +575,39 @@ const Chatbot: React.FC = () => {
           )}
 
           {/* Header */}
-          <div className="p-3 bg-black text-forest-400 font-serif text-xl font-bold flex justify-between items-center border-b border-gray-700">
-            Talk with Sriharan's Bot
+          <div className="px-4 py-2.5 flex justify-between items-center border-b border-white/10 bg-white/5">
+            <span className="font-serif text-base font-bold text-forest-300">
+              Talk with Sriharan&apos;s Bot
+            </span>
             <button onClick={toggleOpen} className="text-forest-400/80 hover:text-forest-300">
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
-          {/* Transcript Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-900">
+          {/* Avatar stage — photo bubbles with the user's voice while
+              listening, glows with the bot's voice while speaking */}
+          <div ref={avatarWrapRef} className="relative flex-1 flex flex-col items-center justify-center gap-3 px-4">
+            <div className="avatar-glow absolute w-44 h-44 rounded-full bg-forest-400/60 blur-2xl pointer-events-none" />
+            <div className="avatar-ring absolute w-32 h-32 rounded-full border-2 border-forest-400 pointer-events-none" />
+            <img
+              src={SRIHARAN_IMAGE_URL}
+              alt="Sriharan"
+              className={`relative w-28 h-28 rounded-full object-cover border-2 border-white/25 shadow-xl ${
+                status === 'listening' ? 'avatar-bubble' : ''
+              } ${status === 'thinking' ? 'thinking-pulse' : ''}`}
+            />
+            <div className="flex items-center gap-2">
+              <Mic size={14} className={status === 'listening' ? 'text-forest-400' : 'text-forest-400/60'} />
+              <span className="text-sm font-mono text-forest-300">{statusLabel[status]}</span>
+              <span className={`w-2 h-2 rounded-full ${dotColor[status]}`} />
+            </div>
+          </div>
+
+          {/* Transcript */}
+          <div className="h-40 p-3 overflow-y-auto space-y-2 border-t border-white/10 bg-white/5">
             {turns.length === 0 && !partialText && (
               <p className="text-forest-400/70 text-sm">
-                Hello! I'm Sriharan's Personal Bot. Just speak to ask anything about me.
+                Hello! I&apos;m Sriharan&apos;s Personal Bot. Just speak to ask anything about me.
               </p>
             )}
 
@@ -497,13 +615,13 @@ const Chatbot: React.FC = () => {
               <div key={index} className="space-y-2">
                 {/* User's spoken question */}
                 {turn.question && (
-                  <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600 text-white">
+                  <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600/80 text-white">
                     {turn.question}
                   </div>
                 )}
                 {/* Bot's answer (spoken aloud, shown as text too) */}
-                <div className="max-w-[85%] mr-auto p-2 rounded-lg text-sm bg-gray-800 text-forest-400 font-mono flex items-start gap-2">
-                  <Volume2 size={14} className="mt-0.5 shrink-0 text-forest-500" />
+                <div className="max-w-[85%] mr-auto p-2 rounded-lg text-sm bg-white/10 text-forest-300 font-mono flex items-start gap-2">
+                  <Volume2 size={14} className="mt-0.5 shrink-0 text-forest-400" />
                   <span>{turn.answer}</span>
                 </div>
               </div>
@@ -511,22 +629,11 @@ const Chatbot: React.FC = () => {
 
             {/* Live partial transcript while the user is speaking */}
             {partialText && (
-              <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600/40 text-forest-100 italic">
+              <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600/30 text-forest-100 italic">
                 {partialText}
               </div>
             )}
-
-            {status === 'thinking' && (
-              <div className="text-center text-sm text-forest-400/70">Bot is thinking…</div>
-            )}
             <div ref={messagesEndRef} />
-          </div>
-
-          {/* Status Bar */}
-          <div className="p-3 border-t border-gray-700 flex items-center gap-2">
-            <Mic size={16} className={status === 'listening' ? 'text-forest-500' : 'text-forest-400/70'} />
-            <span className={`w-2.5 h-2.5 rounded-full ${dotColor[status]}`} />
-            <span className="text-sm font-mono text-forest-400/90">{statusLabel[status]}</span>
           </div>
         </div>
       )}
