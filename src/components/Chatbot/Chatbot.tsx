@@ -12,6 +12,15 @@ const VOICE_WS_URL = FASTAPI_URL.replace(/^http/, 'ws') + '/ws/voice';
 const MIC_SAMPLE_RATE = 16000;
 const TTS_SAMPLE_RATE = 24000;
 
+// Client-side barge-in tuning. While the bot speaks, sustained mic energy is
+// the user talking over the answer — browser AEC already stripped the bot's
+// own voice from the capture, so Murf never has to hear the interruption
+// first (its VAD waits for silence, which is what made turns queue up).
+const BARGE_RMS = 0.04;          // speech level after AGC; AEC residue sits below this
+const BARGE_SPEECH_MS = 300;     // sustained speech needed to fire
+const BARGE_ARM_DELAY_MS = 700;  // let AEC converge after playback starts
+const BARGE_COOLDOWN_MS = 800;   // one interrupt per utterance, not a machine gun
+
 type Status = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
 
 interface Turn {
@@ -38,12 +47,15 @@ const Chatbot: React.FC = () => {
   const lastEndRef = useRef(0); // scheduled end time of the last queued chunk
   const playbackTokenRef = useRef(0); // bumped on stopPlayback to cancel stale done-timers
   const doneTimerRef = useRef<number | null>(null);
+  const speakingRef = useRef(false);   // bot audio is streaming/playing (barge-in armed)
+  const bargeArmAtRef = useRef(0);     // when the current playback started
   const closingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ---------------- Playback (24 kHz PCM16 -> Float32, gapless queue) ----------------
   const stopPlayback = useCallback(() => {
     playbackTokenRef.current += 1;
+    speakingRef.current = false;
     if (doneTimerRef.current !== null) {
       window.clearTimeout(doneTimerRef.current);
       doneTimerRef.current = null;
@@ -76,6 +88,7 @@ const Chatbot: React.FC = () => {
       return;
     }
     doneTimerRef.current = null;
+    speakingRef.current = false; // barge-in window closes with real playback
     setStatus(prev => (prev === 'speaking' ? 'listening' : prev));
     ws.send(JSON.stringify({ type: 'playback_done' }));
   }, []);
@@ -135,11 +148,42 @@ const Chatbot: React.FC = () => {
     processorRef.current = processor;
 
     const ratio = MIC_SAMPLE_RATE / ctx.sampleRate;
+
+    // Barge-in run-length state (per session): sustained speech over the bot's
+    // playback cuts the audio immediately and flags the backend
+    let bargeRunMs = 0;
+    let lastBargeAt = 0;
+
     processor.onaudioprocess = (event: AudioProcessingEvent) => {
       const ws = wsRef.current;
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
       const input = event.inputBuffer.getChannelData(0);
+
+      if (speakingRef.current) {
+        let sum = 0;
+        for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+        const rms = Math.sqrt(sum / input.length);
+        const frameMs = (input.length / ctx.sampleRate) * 1000;
+        bargeRunMs = rms > BARGE_RMS ? bargeRunMs + frameMs : 0;
+        const now = performance.now();
+        if (
+          bargeRunMs >= BARGE_SPEECH_MS &&
+          now - lastBargeAt > BARGE_COOLDOWN_MS &&
+          now - bargeArmAtRef.current > BARGE_ARM_DELAY_MS
+        ) {
+          bargeRunMs = 0;
+          lastBargeAt = now;
+          stopPlayback();
+          setPartialText('');
+          setStatus('listening');
+          ws.send(JSON.stringify({ type: 'interrupt' }));
+          console.log('[VOICE] barge-in: speech over playback, cutting audio');
+        }
+      } else {
+        bargeRunMs = 0;
+      }
+
       const outLength = Math.round(input.length * ratio);
       const resampled = new Float32Array(outLength);
       for (let i = 0; i < outLength; i++) {
@@ -165,7 +209,7 @@ const Chatbot: React.FC = () => {
     silentGain.gain.value = 0;
     processor.connect(silentGain);
     silentGain.connect(ctx.destination);
-  }, []);
+  }, [stopPlayback]);
 
   const stopMic = useCallback(() => {
     processorRef.current?.disconnect();
@@ -226,6 +270,7 @@ const Chatbot: React.FC = () => {
             setPartialText(data.text ?? '');
             break;
           case 'thinking':
+            speakingRef.current = false;
             setPartialText('');
             setStatus('thinking');
             break;
@@ -247,6 +292,12 @@ const Chatbot: React.FC = () => {
             break;
         }
       } else if (event.data instanceof ArrayBuffer) {
+        // First audio chunk opens the barge-in window (armed after a short
+        // AEC-convergence delay so the bot never interrupts itself)
+        if (!speakingRef.current) {
+          speakingRef.current = true;
+          bargeArmAtRef.current = performance.now();
+        }
         playChunk(new Int16Array(event.data));
       }
     };

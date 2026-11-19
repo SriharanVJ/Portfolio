@@ -25,16 +25,19 @@ Protocol (https://murf.ai/api/docs/speech-to-text/streaming):
   tier: 5), 4005 out of credits, 4008 idle timeout.
 
 Barge-in: Murf has no barge-in/interruption API (unlike the Whisper service's
-tts_start/tts_end handshake). It is detected in make_murf_relay(): a
-partial/final arriving WHILE Kokoro audio is playing that is not an echo of the
-spoken answer cancels playback. Browser echoCancellation removes most bot
-self-audio; the substring guard plus Murf's bvc=1 background-voice cleanup
-catch the rest.
+tts_start/tts_end handshake). The PRIMARY detector is client-side: the browser
+watches mic energy during playback (its AEC strips the bot's own voice) and
+sends an `interrupt` control frame on sustained speech — voice_ws cancels the
+answer immediately, so interruptions cut audio instantly instead of queueing.
+As a backup, make_murf_relay() still cancels when a partial/final arriving
+DURING playback is not an echo of the spoken answer (substring guard plus
+Murf's bvc=1 background-voice cleanup).
 """
 import asyncio
 import json
 import os
 import re
+import time
 import urllib.parse
 
 import websockets
@@ -132,9 +135,16 @@ def make_murf_relay(murf_ws, browser_ws, state, spawn_answer, trigger_barge_in):
                     print(f"[VOICE][MURF] partial: '{text[:70]}'")
                     await _safe_send_json(browser_ws, {"type": "partial", "text": text})
                 elif etype == "final" and text:
-                    # Server-side VAD says the user finished: that's the question
-                    print(f"[VOICE][MURF] final -> answer: '{text[:70]}'")
-                    spawn_answer(text)
+                    # Right after a barge-in the first final can still be
+                    # echo-tinged audio from before the cut — drop it inside
+                    # the grace window; the user's ongoing speech produces a
+                    # fresh final immediately after
+                    if time.monotonic() < state.get("ignore_finals_until", 0.0):
+                        print(f"[VOICE][MURF] final in barge-in grace, dropped: '{text[:70]}'")
+                    else:
+                        # Server-side VAD says the user finished: that's the question
+                        print(f"[VOICE][MURF] final -> answer: '{text[:70]}'")
+                        spawn_answer(text)
 
             elif etype == "Error":
                 print(f"[VOICE][MURF] error: {event.get('message')}")

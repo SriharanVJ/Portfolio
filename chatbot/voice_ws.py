@@ -31,6 +31,7 @@ barge-in would replay stale queued audio and drop the next answer's text
 import asyncio
 import json
 import os
+import time
 import urllib.parse
 
 from dotenv import load_dotenv
@@ -130,8 +131,9 @@ async def voice_endpoint(browser_ws: WebSocket):
     # Generation counter: bumped on every interruption / new answer so stale
     # Gemini results are discarded instead of being spoken after a barge-in.
     # speaking/answer track TTS playback (Murf barge-in echo rejection uses them;
-    # harmless for Whisper).
-    state = {"gen": 0, "speaking": False, "answer": ""}
+    # harmless for Whisper). ignore_finals_until is a short grace window after
+    # a barge-in during which finals from pre-interrupt audio are dropped.
+    state = {"gen": 0, "speaking": False, "answer": "", "ignore_finals_until": 0.0}
 
     try:
         # ---- Connect to the STT service ----
@@ -275,14 +277,19 @@ async def voice_endpoint(browser_ws: WebSocket):
             asyncio.ensure_future(_safe_send_json(browser_ws, {"type": "thinking"}))
             answer_task = asyncio.ensure_future(run_answer(user_text))
 
-        # Shared by Whisper's `interruption` event and Murf's speech-during-TTS
-        # detection: stop the in-flight answer and tell the browser to cut playback
+        # Shared by the browser's client-side VAD interrupt, Whisper's
+        # `interruption` event and Murf's speech-during-TTS detection: stop the
+        # in-flight answer and tell the browser to cut playback
         def trigger_barge_in():
             nonlocal answer_task
             print("[VOICE] barge-in triggered")
             state["gen"] += 1
             state["speaking"] = False
             state["answer"] = ""
+            # Transcripts still in flight from before the cut are echo-tinged
+            # audio the user talked over — give Murf ~1s to flush them, then
+            # fresh finals carry the actual barge-in question again
+            state["ignore_finals_until"] = time.monotonic() + 1.0
             if answer_task is not None and not answer_task.done():
                 answer_task.cancel()
             asyncio.ensure_future(_safe_send_json(browser_ws, {"type": "interruption"}))
@@ -357,7 +364,17 @@ async def voice_endpoint(browser_ws: WebSocket):
                         state["answer"] = ""
                         if STT_PROVIDER == "whisper":
                             await _safe_ws_send(stt_ws, json.dumps({"type": "tts_end"}))
-                    elif ctype in ("reset", "interrupt") and STT_PROVIDER == "whisper":
+                    elif ctype == "interrupt":
+                        # Client-side barge-in: the browser VAD heard the user
+                        # talking over the playback and already cut the audio.
+                        # Cancel the answer here; keep streaming mic audio to
+                        # Murf so its next final carries the new question.
+                        # (`interrupt` is a local control frame — never
+                        # forwarded to Murf, which rejects unknown text frames.)
+                        trigger_barge_in()
+                        if STT_PROVIDER == "whisper":
+                            await _safe_ws_send(stt_ws, msg["text"])
+                    elif ctype == "reset" and STT_PROVIDER == "whisper":
                         await _safe_ws_send(stt_ws, msg["text"])
 
         relay_to_stt = asyncio.ensure_future(browser_to_stt())
