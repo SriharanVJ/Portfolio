@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Mic, Volume2 } from 'lucide-react';
+import { X, Mic } from 'lucide-react';
 import type { MicVAD } from '@ricky0123/vad-web';
 
 // Ensure this is the RAW URL, typically starting with raw.githubusercontent.com
@@ -36,16 +36,9 @@ const analyserRms = (analyser: AnalyserNode | null, buf: Uint8Array): number => 
   return Math.sqrt(sum / buf.length);
 };
 
-interface Turn {
-  question: string;
-  answer: string;
-}
-
 const Chatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
-  const [turns, setTurns] = useState<Turn[]>([]);
-  const [partialText, setPartialText] = useState('');
   const [errorInfo, setErrorInfo] = useState<{ title: string; message: string } | null>(null);
 
   // Session resources
@@ -70,7 +63,6 @@ const Chatbot: React.FC = () => {
   const rafRef = useRef<number | null>(null);
   const avatarWrapRef = useRef<HTMLDivElement | null>(null);
   const closingRef = useRef(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ---------------- Playback (24 kHz PCM16 -> Float32, gapless queue) ----------------
   const stopPlayback = useCallback(() => {
@@ -196,7 +188,6 @@ const Chatbot: React.FC = () => {
       ) {
         lastBargeAt = now;
         stopPlayback();
-        setPartialText('');
         setStatus('listening');
         ws.send(JSON.stringify({ type: 'interrupt' }));
         console.log('[VOICE] barge-in: Silero VAD speech over playback, cutting audio');
@@ -224,7 +215,6 @@ const Chatbot: React.FC = () => {
           bargeRunMs = 0;
           lastBargeAt = now;
           stopPlayback();
-          setPartialText('');
           setStatus('listening');
           ws.send(JSON.stringify({ type: 'interrupt' }));
           console.log('[VOICE] barge-in: speech over playback, cutting audio');
@@ -313,8 +303,6 @@ const Chatbot: React.FC = () => {
   const startSession = useCallback(async () => {
     setStatus('connecting');
     setErrorInfo(null);
-    setTurns([]);
-    setPartialText('');
     closingRef.current = false;
 
     // Ask for mic permission first, then connect
@@ -370,16 +358,9 @@ const Chatbot: React.FC = () => {
           case 'ready':
             setStatus('listening');
             break;
-          case 'partial':
-            setPartialText(data.text ?? '');
-            break;
           case 'thinking':
             speakingRef.current = false;
-            setPartialText('');
             setStatus('thinking');
-            break;
-          case 'response':
-            setTurns(prev => [...prev, { question: data.question ?? '', answer: data.text ?? '' }]);
             break;
           case 'speaking':
             setStatus('speaking');
@@ -388,7 +369,6 @@ const Chatbot: React.FC = () => {
           // ends and reports `playback_done` to the backend itself
           case 'interruption':
             stopPlayback();
-            setPartialText('');
             setStatus('listening');
             break;
           case 'error':
@@ -433,7 +413,6 @@ const Chatbot: React.FC = () => {
     playbackCtxRef.current?.close().catch(() => undefined);
     playbackCtxRef.current = null;
     setStatus('idle');
-    setPartialText('');
     setErrorInfo(null);
   }, [stopMic, stopPlayback]);
 
@@ -449,11 +428,6 @@ const Chatbot: React.FC = () => {
 
   // Cleanup if the component unmounts mid-session
   useEffect(() => stopSession, [stopSession]);
-
-  // Auto-scroll the transcript
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [turns, partialText]);
 
   const statusLabel: Record<Status, string> = {
     idle: 'Offline',
@@ -496,8 +470,11 @@ const Chatbot: React.FC = () => {
       {/* Voice Toggle Button — photo with a rotating "talk to me" ring */}
       <div className="relative">
         {!isOpen && (
+          // Explicit size + negative offset (NOT w-full/-inset-*): the svg is a
+          // replaced element, so w-full there shrank it to the button's 80px and
+          // shifted the ring off-centre. 160px box on an 80px button = -40px.
           <svg
-            className="voice-ring absolute -inset-7 w-full h-full pointer-events-none"
+            className="voice-ring absolute -left-10 -top-10 w-40 h-40 pointer-events-none"
             viewBox="0 0 100 100"
             aria-hidden="true"
           >
@@ -509,11 +486,11 @@ const Chatbot: React.FC = () => {
               />
             </defs>
             <text
-              className="fill-white/70"
-              style={{ fontSize: 8.2, letterSpacing: 2.4, textTransform: 'uppercase', fontFamily: 'monospace' }}
+              className="fill-white/90"
+              style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'monospace' }}
             >
               <textPath href="#talk-circle" textLength="262">
-                Talk to me • Talk to me • Talk to me •
+                Talk to me • Talk to me •
               </textPath>
             </text>
           </svg>
@@ -544,7 +521,7 @@ const Chatbot: React.FC = () => {
         <div
           className="
               absolute bottom-0 right-0 transform translate-y-[-112px]
-              w-80 h-[480px] bg-black/70 backdrop-blur-2xl text-forest-400 rounded-3xl
+              w-80 h-[380px] bg-transparent backdrop-blur-2xl text-forest-400 rounded-3xl
               shadow-2xl flex flex-col overflow-hidden border border-white/15
           "
         >
@@ -601,39 +578,6 @@ const Chatbot: React.FC = () => {
               <span className="text-sm font-mono text-forest-300">{statusLabel[status]}</span>
               <span className={`w-2 h-2 rounded-full ${dotColor[status]}`} />
             </div>
-          </div>
-
-          {/* Transcript */}
-          <div className="h-40 p-3 overflow-y-auto space-y-2 border-t border-white/10 bg-white/5">
-            {turns.length === 0 && !partialText && (
-              <p className="text-forest-400/70 text-sm">
-                Hello! I&apos;m Sriharan&apos;s Personal Bot. Just speak to ask anything about me.
-              </p>
-            )}
-
-            {turns.map((turn, index) => (
-              <div key={index} className="space-y-2">
-                {/* User's spoken question */}
-                {turn.question && (
-                  <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600/80 text-white">
-                    {turn.question}
-                  </div>
-                )}
-                {/* Bot's answer (spoken aloud, shown as text too) */}
-                <div className="max-w-[85%] mr-auto p-2 rounded-lg text-sm bg-white/10 text-forest-300 font-mono flex items-start gap-2">
-                  <Volume2 size={14} className="mt-0.5 shrink-0 text-forest-400" />
-                  <span>{turn.answer}</span>
-                </div>
-              </div>
-            ))}
-
-            {/* Live partial transcript while the user is speaking */}
-            {partialText && (
-              <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600/30 text-forest-100 italic">
-                {partialText}
-              </div>
-            )}
-            <div ref={messagesEndRef} />
           </div>
         </div>
       )}
