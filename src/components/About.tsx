@@ -176,7 +176,7 @@ export const About = () => {
         </div>
 
         {/* Animated Stats - Bold Display */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 md:mb-20">
           {[
             { value: `${counts.years}+`, label: 'Years Experience', icon: Zap, color: 'from-crimson-500 to-forest-500' },
             { value: `${counts.projects}+`, label: 'AI Projects', icon: Cpu, color: 'from-forest-500 to-forest-500' },
@@ -191,7 +191,7 @@ export const About = () => {
                 transitionDelay: `${0.3 + index * 0.15}s`
               }}
             >
-              <CardContent className="p-10">
+              <CardContent className="p-8 sm:p-10">
                 <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} mb-6 group-hover:scale-125 transition-transform duration-300 shadow-lg`}>
                   <stat.icon className="w-8 h-8 text-white" />
                 </div>
@@ -205,7 +205,7 @@ export const About = () => {
         </div>
 
         {/* Journey and Facts */}
-        <div className="grid lg:grid-cols-2 gap-12 mb-20">
+        <div className="grid lg:grid-cols-2 gap-12 mb-12 md:mb-20">
           {/* Journey */}
           <div
             className="space-y-8 transition-all duration-1000"
@@ -234,7 +234,7 @@ export const About = () => {
 
           {/* Quick Facts - Interactive */}
           <div
-            className="glass rounded-3xl p-10 card-shine transition-all duration-1000"
+            className="glass rounded-3xl p-6 sm:p-10 card-shine transition-all duration-1000"
             style={{
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateX(0)' : 'translateX(80px)',
@@ -269,7 +269,7 @@ export const About = () => {
         </div>
 
         {/* Education Section */}
-        <div className="mb-20">
+        <div className="mb-12 md:mb-20">
           <div className="text-center mb-12">
             <h3
               className={`text-4xl md:text-5xl font-black text-white mb-6 font-space transition-all duration-1000 ${
@@ -348,7 +348,7 @@ export const About = () => {
 
           {/* Certifications */}
           <div
-            className="mt-12 glass rounded-3xl p-10 card-shine transition-all duration-1000"
+            className="mt-12 glass rounded-3xl p-6 sm:p-10 card-shine transition-all duration-1000"
             style={{
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0)' : 'translateY(40px)',

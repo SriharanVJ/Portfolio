@@ -183,7 +183,7 @@ const ContactForm = () => {
                     {info.href ? (
                       <a
                         href={info.href}
-                        className="text-xl text-white hover:text-forest-400 transition-colors font-bold link-underline"
+                        className="text-xl text-white hover:text-forest-400 transition-colors font-bold link-underline break-all"
                       >
                         {info.value}
                       </a>
@@ -247,8 +247,8 @@ const ContactForm = () => {
                 <CardTitle className="text-white">Send me a message</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  <div className="grid md:grid-cols-2 gap-8">
+                <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                  <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
                     {/* Name Input */}
                     <div className="space-y-3">
                       <label
@@ -366,7 +366,7 @@ const ContactForm = () => {
                     type="submit"
                     size="lg"
                     disabled={isSending}
-                    className="w-full btn-cyber rounded-2xl py-8 text-xl ripple-effect group shadow-2xl shadow-crimson-500/30"
+                    className="w-full btn-cyber rounded-2xl py-4 text-base sm:py-8 sm:text-xl ripple-effect group shadow-2xl shadow-crimson-500/30"
                   >
                     {isSending ? (
                       <>

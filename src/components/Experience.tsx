@@ -185,7 +185,7 @@ export const Experience = () => {
                   {/* Top Gradient Bar */}
                   <div className={`h-2 bg-gradient-to-r ${exp.gradient} transition-all duration-500 group-hover:h-3 shadow-lg`} />
 
-                  <CardContent className="p-10">
+                  <CardContent className="p-5 sm:p-10">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
                       <div className="flex-1">
@@ -194,7 +194,7 @@ export const Experience = () => {
                             <Building size={28} className="text-white" />
                           </div>
                           <div>
-                            <h3 className="text-3xl font-black text-white group-hover:gradient-text-cyber transition-all duration-300">
+                            <h3 className="text-2xl sm:text-3xl font-black text-white group-hover:gradient-text-cyber transition-all duration-300">
                               {exp.position}
                             </h3>
                             <p className="text-xl text-zinc-400">{exp.company}</p>
@@ -203,15 +203,15 @@ export const Experience = () => {
                       </div>
 
                       <div className="flex flex-wrap gap-3">
-                        <div className="flex items-center gap-2 px-5 py-3 glass rounded-2xl hover:glass-dark transition-all duration-300">
+                        <div className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-3 glass rounded-2xl hover:glass-dark transition-all duration-300">
                           <Briefcase size={18} className="text-crimson-400" />
                           <span className="text-white font-bold">{exp.duration}</span>
                         </div>
-                        <div className="flex items-center gap-2 px-5 py-3 glass rounded-2xl hover:glass-dark transition-all duration-300">
+                        <div className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-3 glass rounded-2xl hover:glass-dark transition-all duration-300">
                           <MapPin size={18} className="text-forest-400" />
                           <span className="text-white font-bold">{exp.location}</span>
                         </div>
-                        <div className={`flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r ${exp.gradient} shadow-lg`}>
+                        <div className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-3 rounded-2xl bg-gradient-to-r ${exp.gradient} shadow-lg`}>
                           <span className="text-white font-black text-sm">{exp.type}</span>
                         </div>
                       </div>
@@ -244,10 +244,10 @@ export const Experience = () => {
                           <TrendingUp size={20} className="text-crimson-500" />
                           KEY METRICS
                         </h4>
-                        <div className="grid grid-cols-3 gap-6">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-6">
                           {exp.metrics.map((metric, mIndex) => (
                             <div key={mIndex} className="text-center group/metric">
-                              <div className={`text-4xl font-black bg-gradient-to-r ${metric.color} bg-clip-text text-transparent mb-2 group-hover/metric:scale-125 transition-transform duration-300`}>
+                              <div className={`text-2xl sm:text-4xl font-black bg-gradient-to-r ${metric.color} bg-clip-text text-transparent mb-2 group-hover/metric:scale-125 transition-transform duration-300`}>
                                 {metric.value}
                               </div>
                               <div className="text-sm text-zinc-500 font-semibold uppercase tracking-wide">{metric.label}</div>
@@ -343,7 +343,7 @@ export const Experience = () => {
 
         {/* Summary Card */}
         <div
-          className="mt-16 glass rounded-3xl p-12 text-center card-shine transition-all duration-1000"
+          className="mt-16 glass rounded-3xl p-6 sm:p-12 text-center card-shine transition-all duration-1000"
           style={{
             opacity: isVisible ? 1 : 0,
             transform: isVisible ? 'translateY(0)' : 'translateY(60px)',

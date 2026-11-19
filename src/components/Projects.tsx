@@ -269,7 +269,7 @@ export const Projects = () => {
               <Button
                 asChild
                 size="lg"
-                className="btn-cyber rounded-xl px-10 py-8 text-xl ripple-effect mx-auto flex"
+                className="btn-cyber rounded-xl px-6 py-4 text-base sm:px-10 sm:py-8 sm:text-xl ripple-effect mx-auto flex"
               >
                 <a
                   href="https://github.com/sriharanvj"

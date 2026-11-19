@@ -447,9 +447,10 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    // bottom/right-12 (48px): the ring extends 40px past the button, so the
-    // old 28px margin clipped it at the screen corner
-    <div className="fixed bottom-12 right-12 z-[9999]">
+    // Corner margin must cover the ring's overhang ((ringBox − 80px button)/2)
+    // or the rotating text clips at the screen edge: mobile 16px margin ↔ 112px
+    // ring (16px overhang), desktop 48px ↔ 160px ring (40px overhang)
+    <div className="fixed bottom-4 right-4 sm:bottom-12 sm:right-12 z-[9999]">
       {/* Component-scoped styles: the rotating ring + voice-reactive avatar.
           --mic-lvl / --tts-lvl (0..1) are written every frame by the rAF loop
           in startSession, so these effects track the actual audio. */}
@@ -475,9 +476,9 @@ const Chatbot: React.FC = () => {
         {!isOpen && (
           // Explicit size + negative offset (NOT w-full/-inset-*): the svg is a
           // replaced element, so w-full there shrank it to the button's 80px and
-          // shifted the ring off-centre. 160px box on an 80px button = -40px.
+          // shifted the ring off-centre. Box = 80px button + 2× the overhang.
           <svg
-            className="voice-ring absolute -left-10 -top-10 w-40 h-40 pointer-events-none"
+            className="voice-ring absolute -left-4 -top-4 w-28 h-28 sm:-left-10 sm:-top-10 sm:w-40 sm:h-40 pointer-events-none"
             viewBox="0 0 100 100"
             aria-hidden="true"
           >
@@ -524,7 +525,7 @@ const Chatbot: React.FC = () => {
         <div
           className="
               absolute bottom-0 right-0 transform translate-y-[-112px]
-              w-80 h-[380px] bg-transparent backdrop-blur-2xl text-forest-400 rounded-3xl
+              w-80 max-w-[calc(100vw-2rem)] h-[380px] bg-transparent backdrop-blur-2xl text-forest-400 rounded-3xl
               shadow-2xl flex flex-col overflow-hidden border border-white/15
           "
         >
