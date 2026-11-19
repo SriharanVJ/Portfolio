@@ -41,7 +41,7 @@ import websockets
 # .env must be loaded BEFORE importing stt_murf (it reads MURF_* env vars)
 load_dotenv()
 
-from stt_murf import open_murf_stt, make_murf_relay
+from stt_murf import open_murf_stt, make_murf_relay, extend_turn_hold, cancel_pending_turn
 from tts_fish import open_fish_tts, send_fish_text, parse_fish_message
 
 # STT provider: "whisper" (self-hosted) or "murf" (cloud) — decided in .env only
@@ -133,7 +133,16 @@ async def voice_endpoint(browser_ws: WebSocket):
     # speaking/answer track TTS playback (Murf barge-in echo rejection uses them;
     # harmless for Whisper). ignore_finals_until is a short grace window after
     # a barge-in during which finals from pre-interrupt audio are dropped.
-    state = {"gen": 0, "speaking": False, "answer": "", "ignore_finals_until": 0.0}
+    # turn_timer/held_texts belong to stt_murf's end-of-turn hold (Murf path
+    # only; Whisper turns use segment buffering below).
+    state = {
+        "gen": 0,
+        "speaking": False,
+        "answer": "",
+        "ignore_finals_until": 0.0,
+        "turn_timer": None,
+        "held_texts": [],
+    }
 
     try:
         # ---- Connect to the STT service ----
@@ -290,6 +299,7 @@ async def voice_endpoint(browser_ws: WebSocket):
             # audio the user talked over — give Murf ~1s to flush them, then
             # fresh finals carry the actual barge-in question again
             state["ignore_finals_until"] = time.monotonic() + 1.0
+            cancel_pending_turn(state)
             if answer_task is not None and not answer_task.done():
                 answer_task.cancel()
             asyncio.ensure_future(_safe_send_json(browser_ws, {"type": "interruption"}))
@@ -374,6 +384,14 @@ async def voice_endpoint(browser_ws: WebSocket):
                         trigger_barge_in()
                         if STT_PROVIDER == "whisper":
                             await _safe_ws_send(stt_ws, msg["text"])
+                    elif ctype == "speech_start":
+                        # Client Silero VAD: the user started talking again.
+                        # On the Murf path this extends a pending unfinished-
+                        # turn hold so continuing speech merges into one
+                        # question (the follow-up final lands before it
+                        # fires). Whisper handles turns itself — ignore.
+                        if STT_PROVIDER == "murf":
+                            extend_turn_hold(state)
                     elif ctype == "reset" and STT_PROVIDER == "whisper":
                         await _safe_ws_send(stt_ws, msg["text"])
 
@@ -400,6 +418,7 @@ async def voice_endpoint(browser_ws: WebSocket):
     except Exception as e:
         print(f"[VOICE] connection error: {e}")
     finally:
+        cancel_pending_turn(state)
         if answer_task is not None and not answer_task.done():
             answer_task.cancel()
         if stt_ws is not None:

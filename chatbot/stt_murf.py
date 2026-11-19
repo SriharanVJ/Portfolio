@@ -26,12 +26,19 @@ Protocol (https://murf.ai/api/docs/speech-to-text/streaming):
 
 Barge-in: Murf has no barge-in/interruption API (unlike the Whisper service's
 tts_start/tts_end handshake). The PRIMARY detector is client-side: the browser
-watches mic energy during playback (its AEC strips the bot's own voice) and
-sends an `interrupt` control frame on sustained speech — voice_ws cancels the
-answer immediately, so interruptions cut audio instantly instead of queueing.
+runs Silero VAD (neural, in-page) on the mic — its AEC strips the bot's own
+voice first — and sends an `interrupt` control frame on speech over playback
+(RMS energy is the fallback detector) — voice_ws cancels the answer
+immediately, so interruptions cut audio instantly instead of queueing.
 As a backup, make_murf_relay() still cancels when a partial/final arriving
 DURING playback is not an echo of the spoken answer (substring guard plus
 Murf's bvc=1 background-voice cleanup).
+
+Turn detection: Murf's VAD still finalizes turns (silence endpointing), but
+finals now pass through a short end-of-turn hold — a final ending on a
+continuer word ("and", "because", "tell"...) waits TURN_HOLD_SECONDS; the
+client's `speech_start` frame extends the hold and the follow-up final
+merges into the same turn.
 """
 import asyncio
 import json
@@ -80,6 +87,88 @@ def _is_user_barge_in(text: str, answer: str) -> bool:
     return bool(t) and t not in _norm_text(answer or "")
 
 
+# ---------------- End-of-turn smoothing ----------------
+# Murf's VAD finalizes a turn on its silence threshold, so a mid-thought
+# pause ("...your projects, and...") can produce a premature final. When the
+# transcript ends on a continuer word, hold the answer briefly: the client's
+# `speech_start` (Silero VAD) extends the hold, and the follow-up final
+# merges into the same turn. Murf's streaming finals carry no punctuation,
+# so the check is word-based, not punctuation-based — and deliberately
+# conservative: a false "finished" costs an early answer (recoverable by
+# barge-in), a false "unfinished" costs TURN_HOLD_SECONDS of latency.
+TURN_HOLD_SECONDS = 1.2
+
+_CONTINUERS = {
+    # conjunctions / fillers
+    "and", "but", "so", "or", "because", "then", "also", "um", "umm", "uh",
+    "uhh", "hmm", "like", "actually", "basically", "well",
+    # wh-words / auxiliaries a question rarely ends on
+    "what", "whats", "which", "who", "whos", "when", "where", "how", "why",
+    "can", "could", "do", "does", "did", "is", "are", "will", "would",
+    "should", "tell", "know",
+    # prepositions / articles a sentence never ends on
+    "about", "to", "of", "for", "with", "the", "a", "an", "in", "on",
+}
+
+
+def _looks_unfinished(text: str) -> bool:
+    words = re.findall(r"[a-z']+", text.lower())
+    if not words:
+        return False
+    return words[-1].strip("'") in _CONTINUERS
+
+
+def _schedule_turn(state, texts):
+    """(Re)arm the turn timer for the accumulated final transcripts. A
+    finished-looking turn fires immediately; an unfinished one waits
+    TURN_HOLD_SECONDS for the user to continue."""
+    old = state.get("turn_timer")
+    if old is not None and not old.done():
+        old.cancel()
+    joined = " ".join(t for t in texts if t).strip()
+    if not joined:
+        state["turn_timer"] = None
+        state["held_texts"] = []
+        return
+    hold = TURN_HOLD_SECONDS if _looks_unfinished(joined) else 0.0
+
+    async def fire():
+        me = asyncio.current_task()
+        if hold:
+            await asyncio.sleep(hold)
+        # superseded by a newer final / speech_start / barge-in?
+        if state.get("turn_timer") is not me:
+            return
+        state["turn_timer"] = None
+        state["held_texts"] = []
+        spawn = state.get("spawn_answer")
+        if spawn:
+            print(f"[VOICE][MURF] turn complete -> answer: '{joined[:70]}'")
+            spawn(joined)
+
+    state["turn_timer"] = asyncio.ensure_future(fire())
+    state["held_texts"] = texts
+
+
+def extend_turn_hold(state):
+    """Client VAD reports speech starting while a turn is on hold: the user
+    kept talking — push the fire time out so the continuing final merges."""
+    task = state.get("turn_timer")
+    texts = state.get("held_texts") or []
+    if task is None or task.done() or not texts:
+        return
+    print("[VOICE][MURF] speech continues, extending turn hold")
+    _schedule_turn(state, texts)
+
+
+def cancel_pending_turn(state):
+    task = state.get("turn_timer")
+    if task is not None and not task.done():
+        task.cancel()
+    state["turn_timer"] = None
+    state["held_texts"] = []
+
+
 async def open_murf_stt():
     """Open the Murf transcription session. Murf sends nothing until audio arrives."""
     cfg = _murf_env()
@@ -103,7 +192,12 @@ def make_murf_relay(murf_ws, browser_ws, state, spawn_answer, trigger_barge_in):
       state["answer"]    the text currently being spoken (echo guard)
       spawn_answer(text) start RAG+Gemini+TTS for a finished user turn
       trigger_barge_in() cancel the in-flight answer + notify the browser
+
+    Also stashes spawn_answer in `state` so voice_ws's control-frame handler
+    can extend the end-of-turn hold (extend_turn_hold) when the client's
+    Silero VAD reports the user still talking.
     """
+    state["spawn_answer"] = spawn_answer
 
     async def murf_to_browser():
         async for message in murf_ws:
@@ -142,9 +236,11 @@ def make_murf_relay(murf_ws, browser_ws, state, spawn_answer, trigger_barge_in):
                     if time.monotonic() < state.get("ignore_finals_until", 0.0):
                         print(f"[VOICE][MURF] final in barge-in grace, dropped: '{text[:70]}'")
                     else:
-                        # Server-side VAD says the user finished: that's the question
-                        print(f"[VOICE][MURF] final -> answer: '{text[:70]}'")
-                        spawn_answer(text)
+                        # Server-side VAD says the user finished: route it
+                        # through the turn hold (unfinished questions wait
+                        # briefly and merge with any follow-up final)
+                        print(f"[VOICE][MURF] final -> turn: '{text[:70]}'")
+                        _schedule_turn(state, (state.get("held_texts") or []) + [text])
 
             elif etype == "Error":
                 print(f"[VOICE][MURF] error: {event.get('message')}")

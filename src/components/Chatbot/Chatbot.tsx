@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Mic, Volume2 } from 'lucide-react';
+import type { MicVAD } from '@ricky0123/vad-web';
 
 // Ensure this is the RAW URL, typically starting with raw.githubusercontent.com
 const SRIHARAN_IMAGE_URL = 'https://raw.githubusercontent.com/SriharanVJ/Portfolio/main/Sriharan%20Photo.jpg';
@@ -49,6 +50,7 @@ const Chatbot: React.FC = () => {
   const doneTimerRef = useRef<number | null>(null);
   const speakingRef = useRef(false);   // bot audio is streaming/playing (barge-in armed)
   const bargeArmAtRef = useRef(0);     // when the current playback started
+  const vadRef = useRef<MicVAD | null>(null); // Silero VAD (neural speech detection)
   const closingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -154,6 +156,29 @@ const Chatbot: React.FC = () => {
     let bargeRunMs = 0;
     let lastBargeAt = 0;
 
+    // Silero VAD speech start: fires on real speech even amid noise (the RMS
+    // fallback below triggers on any loud sound). Also reports speech to the
+    // backend, which extends a pending unfinished-turn hold so continued
+    // speech merges into one question.
+    const vadSpeechStart = () => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({ type: 'speech_start' }));
+      const now = performance.now();
+      if (
+        speakingRef.current &&
+        now - lastBargeAt > BARGE_COOLDOWN_MS &&
+        now - bargeArmAtRef.current > BARGE_ARM_DELAY_MS
+      ) {
+        lastBargeAt = now;
+        stopPlayback();
+        setPartialText('');
+        setStatus('listening');
+        ws.send(JSON.stringify({ type: 'interrupt' }));
+        console.log('[VOICE] barge-in: Silero VAD speech over playback, cutting audio');
+      }
+    };
+
     processor.onaudioprocess = (event: AudioProcessingEvent) => {
       const ws = wsRef.current;
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -209,9 +234,39 @@ const Chatbot: React.FC = () => {
     silentGain.gain.value = 0;
     processor.connect(silentGain);
     silentGain.connect(ctx.destination);
+
+    // Silero VAD (primary barge-in / speech detector). Dynamic import so the
+    // ONNX runtime stays out of the initial page load; the model and wasm
+    // come from /public/vad. If it fails (old browser, blocked assets) the
+    // RMS detector in onaudioprocess remains the fallback.
+    try {
+      const { MicVAD: MicVADClass } = await import('@ricky0123/vad-web');
+      const vad = await MicVADClass.new({
+        getStream: async () => stream,
+        // Never let the VAD stop our shared mic tracks (its default
+        // pauseStream stops them, which would mute the STT feed too)
+        pauseStream: async () => {},
+        resumeStream: async (s) => s,
+        baseAssetPath: '/vad/',
+        onnxWASMBasePath: '/vad/',
+        model: 'v5',
+        positiveSpeechThreshold: 0.6,
+        negativeSpeechThreshold: 0.4,
+        minSpeechMs: 250,       // ignore coughs and clicks
+        redemptionMs: 700,      // silence allowed before speech "ends"
+        preSpeechPadMs: 300,    // keep the start of the first word
+        onSpeechStart: vadSpeechStart,
+      });
+      await vad.start();
+      vadRef.current = vad;
+    } catch (e) {
+      console.warn('[VOICE] Silero VAD unavailable, falling back to RMS barge-in', e);
+    }
   }, [stopPlayback]);
 
   const stopMic = useCallback(() => {
+    vadRef.current?.destroy().catch(() => undefined);
+    vadRef.current = null;
     processorRef.current?.disconnect();
     micSourceRef.current?.disconnect();
     processorRef.current = null;
