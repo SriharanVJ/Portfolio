@@ -59,6 +59,11 @@ KOKORO_SPEED = os.getenv("KOKORO_SPEED", "1.0")
 
 router = APIRouter()
 
+# First "turn" of every session: generate_answer (main.py) recognizes this
+# sentinel and returns the fixed greeting instead of calling RAG+LLM.
+# Must stay in sync with GREETING_PROMPT in main.py.
+GREETING_PROMPT = "__greeting__"
+
 # Registered by main.py via set_answer_provider(generate_answer) to avoid a circular import
 _answer_provider = None
 
@@ -396,6 +401,11 @@ async def voice_endpoint(browser_ws: WebSocket):
                         await _safe_ws_send(stt_ws, msg["text"])
 
         relay_to_stt = asyncio.ensure_future(browser_to_stt())
+        # Session-opening greeting (the persona prompt's first message): sent
+        # as a canned "turn" — generate_answer short-circuits __greeting__ to
+        # the fixed line, so it flows through the normal TTS path (barge-in
+        # guards included) without touching RAG. Once per session.
+        spawn_answer(GREETING_PROMPT)
         if STT_PROVIDER == "murf":
             relay_to_browser = asyncio.ensure_future(
                 make_murf_relay(stt_ws, browser_ws, state, spawn_answer, trigger_barge_in)()
