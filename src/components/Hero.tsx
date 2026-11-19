@@ -39,12 +39,12 @@ export const Hero = () => {
           }}
         />
 
-        {/* Animated Scan Lines */}
+        {/* Animated Scan Lines — soft background shade instead of a hard red stripe */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent opacity-30"
+              className="absolute w-full h-24 bg-gradient-to-b from-transparent via-white/[0.04] to-transparent"
               style={{
                 top: `${20 + i * 30}%`,
                 animation: `scan-line 4s linear infinite`,
@@ -272,9 +272,9 @@ export const Hero = () => {
         </button>
       </div>
 
-      {/* Bottom Gradient Fade with Scan Line */}
+      {/* Bottom Gradient Fade with soft shade sweep */}
       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#171717] via-[#171717]/90 to-transparent pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent animate-shimmer" />
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white/[0.03] to-transparent" />
       </div>
     </section>
   );
