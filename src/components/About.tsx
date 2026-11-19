@@ -130,12 +130,12 @@ export const About = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-crimson-600/10 rounded-full blur-[120px] animate-morphing-blob" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-forest-600/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
 
-      {/* Scan Lines */}
+      {/* Scan Lines — soft background shade instead of a hard red stripe */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(2)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent opacity-20"
+            className="absolute w-full h-24 bg-gradient-to-b from-transparent via-white/[0.04] to-transparent"
             style={{
               top: `${25 + i * 50}%`,
               animation: `scan-line 6s linear infinite`,
