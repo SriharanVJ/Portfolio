@@ -24,14 +24,14 @@ export const About = () => {
             const easeOut = 1 - Math.pow(1 - progress, 3);
 
             setCounts({
-              years: Math.floor(1 * easeOut),
+              years: Math.floor(2 * easeOut),
               projects: Math.floor(5 * easeOut),
               tech: Math.floor(10 * easeOut)
             });
 
             if (currentStep >= steps) {
               clearInterval(timer);
-              setCounts({ years: 1, projects: 5, tech: 10 });
+              setCounts({ years: 2, projects: 5, tech: 10 });
             }
           }, interval);
 
@@ -58,8 +58,8 @@ export const About = () => {
         { name: 'REST APIs', level: 88 },
         { name: 'API Integration', level: 85 }
       ],
-      color: 'from-blue-500 to-cyan-500',
-      bgGradient: 'from-blue-500/10 to-cyan-500/10'
+      color: 'from-forest-500 to-forest-500',
+      bgGradient: 'from-forest-500/10 to-forest-500/10'
     },
     {
       category: 'AI & Machine Learning',
@@ -70,8 +70,8 @@ export const About = () => {
         { name: 'AI Frameworks', level: 85 },
         { name: 'NLP', level: 82 }
       ],
-      color: 'from-purple-500 to-pink-500',
-      bgGradient: 'from-purple-500/10 to-pink-500/10'
+      color: 'from-crimson-500 to-crimson-500',
+      bgGradient: 'from-crimson-500/10 to-crimson-500/10'
     },
     {
       category: 'Programming Languages',
@@ -82,8 +82,8 @@ export const About = () => {
         { name: 'C++', level: 70 },
         { name: 'SQL', level: 85 }
       ],
-      color: 'from-green-500 to-emerald-500',
-      bgGradient: 'from-green-500/10 to-emerald-500/10'
+      color: 'from-forest-500 to-crimson-500',
+      bgGradient: 'from-forest-500/10 to-crimson-500/10'
     },
     {
       category: 'Tools & Platforms',
@@ -94,8 +94,8 @@ export const About = () => {
         { name: 'Postman', level: 88 },
         { name: 'Linux', level: 75 }
       ],
-      color: 'from-orange-500 to-red-500',
-      bgGradient: 'from-orange-500/10 to-red-500/10'
+      color: 'from-forest-500 to-crimson-500',
+      bgGradient: 'from-forest-500/10 to-crimson-500/10'
     },
     {
       category: 'Databases',
@@ -106,8 +106,8 @@ export const About = () => {
         { name: 'NoSQL', level: 75 },
         { name: 'Scylla', level: 70 }
       ],
-      color: 'from-yellow-500 to-amber-500',
-      bgGradient: 'from-yellow-500/10 to-amber-500/10'
+      color: 'from-crimson-500 to-crimson-500',
+      bgGradient: 'from-crimson-500/10 to-crimson-500/10'
     },
     {
       category: 'Cloud & Integration',
@@ -118,24 +118,24 @@ export const About = () => {
         { name: 'SSO', level: 78 },
         { name: 'APIs', level: 90 }
       ],
-      color: 'from-indigo-500 to-violet-500',
-      bgGradient: 'from-indigo-500/10 to-violet-500/10'
+      color: 'from-forest-500 to-crimson-500',
+      bgGradient: 'from-forest-500/10 to-crimson-500/10'
     }
   ];
 
   return (
-    <section id="about" ref={sectionRef} className="py-32 relative overflow-hidden bg-[#030014]">
+    <section id="about" ref={sectionRef} className="py-32 relative overflow-hidden bg-[#171717]">
       {/* Background Elements */}
       <div className="absolute inset-0 mesh-gradient opacity-40" />
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-morphing-blob" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-crimson-600/10 rounded-full blur-[120px] animate-morphing-blob" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-forest-600/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
 
       {/* Scan Lines */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(2)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-20"
+            className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent opacity-20"
             style={{
               top: `${25 + i * 50}%`,
               animation: `scan-line 6s linear infinite`,
@@ -149,7 +149,7 @@ export const About = () => {
         {/* Section Header */}
         <div className="text-center mb-20">
           <span
-            className={`inline-block px-6 py-3 glass rounded-full text-sm font-bold text-purple-400 mb-8 transition-all duration-1000 ${
+            className={`inline-block px-6 py-3 glass rounded-full text-sm font-bold text-crimson-400 mb-8 transition-all duration-1000 ${
               isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0 translate-y-12'
             }`}
           >
@@ -161,7 +161,7 @@ export const About = () => {
             }`}
             style={{ animationDelay: '0.1s' }}
           >
-            <span className="gradient-text-cyber text-glow-cyan">Crafting Intelligent</span>
+            <span className={`gradient-text-sage inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Crafting Intelligent</span>
             <br />
             <span className="text-white">Solutions</span>
           </h2>
@@ -178,9 +178,9 @@ export const About = () => {
         {/* Animated Stats - Bold Display */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {[
-            { value: `${counts.years}+`, label: 'Years Experience', icon: Zap, color: 'from-purple-500 to-blue-500' },
-            { value: `${counts.projects}+`, label: 'AI Projects', icon: Cpu, color: 'from-cyan-500 to-blue-500' },
-            { value: `${counts.tech}+`, label: 'Technologies', icon: Globe, color: 'from-pink-500 to-purple-500' }
+            { value: `${counts.years}+`, label: 'Years Experience', icon: Zap, color: 'from-crimson-500 to-forest-500' },
+            { value: `${counts.projects}+`, label: 'AI Projects', icon: Cpu, color: 'from-forest-500 to-forest-500' },
+            { value: `${counts.tech}+`, label: 'Technologies', icon: Globe, color: 'from-crimson-500 to-crimson-500' }
           ].map((stat, index) => (
             <Card
               key={index}
@@ -195,7 +195,7 @@ export const About = () => {
                 <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} mb-6 group-hover:scale-125 transition-transform duration-300 shadow-lg`}>
                   <stat.icon className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-6xl font-black gradient-text-cyber text-glow-cyan mb-4 counter-animate">
+                <div className={`text-6xl font-black gradient-text-sage mb-4 counter-animate transition-all duration-1000 ${isVisible ? 'animate-blur-in' : 'opacity-0'}`}>
                   {stat.value}
                 </div>
                 <div className="text-lg text-zinc-400 font-semibold">{stat.label}</div>
@@ -215,8 +215,8 @@ export const About = () => {
               transitionDelay: '0.8s'
             }}
           >
-            <h3 className="text-3xl md:text-4xl font-black text-white font-space">
-              My <span className="gradient-text-cyber text-glow-cyan">Journey</span>
+            <h3 className={`text-3xl md:text-4xl font-black text-white font-space transition-all duration-1000 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              My <span className={`gradient-text-sage inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Journey</span>
             </h3>
             <div className="space-y-6 text-zinc-300 leading-relaxed text-lg">
               <p className="glass-dark rounded-2xl p-6 card-shine">
@@ -241,15 +241,15 @@ export const About = () => {
               transitionDelay: '0.9s'
             }}
           >
-            <h3 className="text-3xl md:text-4xl font-black text-white mb-10 font-space">
-              Quick <span className="gradient-text-cyber text-glow-cyan">Facts</span>
+            <h3 className={`text-3xl md:text-4xl font-black text-white mb-10 font-space transition-all duration-1000 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              Quick <span className={`gradient-text-sage inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Facts</span>
             </h3>
             <div className="space-y-8">
               {[
-                { label: 'Experience', value: '1+ Year (Mar 2025 - Present)', color: 'from-blue-500 to-cyan-500', icon: '💼' },
-                { label: 'Previous', value: 'Internship (Nov 2024 - Feb 2025)', color: 'from-purple-500 to-pink-500', icon: '🚀' },
-                { label: 'Current Focus', value: 'LLMs & RAG Systems', color: 'from-green-500 to-emerald-500', icon: '🎯' },
-                { label: 'Location', value: 'Chennai, India', color: 'from-orange-500 to-red-500', icon: '📍' },
+                { label: 'Experience', value: '2+ Years (Nov 2024 - Present)', color: 'from-forest-500 to-forest-500', icon: '💼' },
+                { label: 'Previous', value: 'Internship (Nov 2024 - Feb 2025)', color: 'from-crimson-500 to-crimson-500', icon: '🚀' },
+                { label: 'Current Focus', value: 'LLMs & RAG Systems', color: 'from-forest-500 to-crimson-500', icon: '🎯' },
+                { label: 'Location', value: 'Chennai, India', color: 'from-forest-500 to-crimson-500', icon: '📍' },
               ].map((fact, index) => (
                 <div
                   key={index}
@@ -277,7 +277,7 @@ export const About = () => {
               }`}
               style={{ animationDelay: '1.1s' }}
             >
-              Education & <span className="gradient-text-cyber text-glow-cyan">Certifications</span>
+              Education & <span className={`gradient-text-sage inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Certifications</span>
             </h3>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -287,7 +287,7 @@ export const About = () => {
                 institution: 'Erode Sengunthar Engineering College',
                 period: '2021 - 2024',
                 percentage: '76%',
-                gradient: 'from-purple-500 to-pink-500',
+                gradient: 'from-crimson-500 to-crimson-500',
                 icon: '🎓'
               },
               {
@@ -295,7 +295,7 @@ export const About = () => {
                 institution: 'Konghu Vellalar Polytechnic College',
                 period: '2018 - 2021',
                 percentage: '86% Distinction',
-                gradient: 'from-cyan-500 to-blue-500',
+                gradient: 'from-forest-500 to-forest-500',
                 icon: '📜'
               },
               {
@@ -303,7 +303,7 @@ export const About = () => {
                 institution: 'Government Boys Higher Secondary School',
                 period: '2017 - 2018',
                 percentage: '73%',
-                gradient: 'from-green-500 to-emerald-500',
+                gradient: 'from-forest-500 to-crimson-500',
                 icon: '🏫'
               }
             ].map((edu, index) => (
@@ -356,7 +356,7 @@ export const About = () => {
             }}
           >
             <div className="flex items-center gap-3 mb-8">
-              <Award className="w-8 h-8 text-yellow-500" />
+              <Award className="w-8 h-8 text-crimson-500" />
               <h4 className="text-2xl font-black text-white">Certifications & Achievements</h4>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
@@ -374,7 +374,7 @@ export const About = () => {
                   className="flex items-center gap-4 p-4 rounded-xl hover:bg-white/5 transition-all duration-300 group cursor-default"
                   style={{ animationDelay: `${1.7 + index * 0.05}s` }}
                 >
-                  <div className={`w-3 h-3 rounded-full ${cert.highlight ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg shadow-yellow-500/50' : 'bg-gradient-to-r from-purple-500 to-blue-500'}`} />
+                  <div className={`w-3 h-3 rounded-full ${cert.highlight ? 'bg-gradient-to-r from-crimson-500 to-forest-500 shadow-lg shadow-crimson-500/50' : 'bg-gradient-to-r from-crimson-500 to-forest-500'}`} />
                   <span className={`text-lg ${cert.highlight ? 'text-white font-black gradient-text-fire' : 'text-zinc-300'}`}>
                     {cert.text}
                   </span>
@@ -393,7 +393,7 @@ export const About = () => {
               }`}
               style={{ animationDelay: '1.8s' }}
             >
-              Skills & <span className="gradient-text-cyber">Technologies</span>
+              Skills & <span className={`gradient-text-cyber inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Technologies</span>
             </h3>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

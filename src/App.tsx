@@ -16,7 +16,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       {/* Background wrapper */}
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-[#030014] text-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-[#171717] via-[#06110C] to-[#171717] text-gray-100">
         <ScrollProgress />
         <Toaster />
         <Sonner />

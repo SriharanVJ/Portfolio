@@ -305,10 +305,10 @@ const Chatbot: React.FC = () => {
   };
   const dotColor: Record<Status, string> = {
     idle: 'bg-gray-500',
-    connecting: 'bg-yellow-400 animate-pulse',
-    listening: 'bg-green-500 animate-pulse',
-    thinking: 'bg-blue-500 animate-pulse',
-    speaking: 'bg-purple-500 animate-pulse',
+    connecting: 'bg-crimson-400 animate-pulse',
+    listening: 'bg-forest-500 animate-pulse',
+    thinking: 'bg-forest-500 animate-pulse',
+    speaking: 'bg-crimson-500 animate-pulse',
     error: 'bg-red-500',
   };
 
@@ -341,20 +341,20 @@ const Chatbot: React.FC = () => {
         <div
           className="
               absolute bottom-0 right-0 transform translate-y-[-70px]
-              w-80 h-[450px] bg-black text-blue-400 rounded-lg
+              w-80 h-[450px] bg-black text-forest-400 rounded-lg
               shadow-2xl flex flex-col overflow-hidden border border-gray-700
           "
         >
           {/* Error / Maintenance Popup */}
           {errorInfo && (
             <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-4 z-20 rounded-lg">
-              <div className="w-20 h-20 rounded-full border-4 border-blue-600 mb-4 overflow-hidden">
+              <div className="w-20 h-20 rounded-full border-4 border-forest-600 mb-4 overflow-hidden">
                 <img src={SRIHARAN_IMAGE_URL} alt="Bot Icon" className="w-full h-full object-cover" />
               </div>
               <p className="text-white text-xl font-bold text-center mb-2 font-serif">
                 {errorInfo.title}
               </p>
-              <p className="text-blue-400 text-center text-sm font-mono mb-6">
+              <p className="text-forest-400 text-center text-sm font-mono mb-6">
                 {errorInfo.message}
                 <br />
                 Please try again later!
@@ -364,7 +364,7 @@ const Chatbot: React.FC = () => {
                   stopSession();
                   setIsOpen(false);
                 }}
-                className="bg-blue-600 text-white p-2 px-4 rounded-md hover:bg-blue-700 transition font-mono"
+                className="bg-forest-600 text-white p-2 px-4 rounded-md hover:bg-forest-700 transition font-mono"
               >
                 Dismiss
               </button>
@@ -372,9 +372,9 @@ const Chatbot: React.FC = () => {
           )}
 
           {/* Header */}
-          <div className="p-3 bg-black text-blue-400 font-serif text-xl font-bold flex justify-between items-center border-b border-gray-700">
+          <div className="p-3 bg-black text-forest-400 font-serif text-xl font-bold flex justify-between items-center border-b border-gray-700">
             Talk with Sriharan's Bot
-            <button onClick={toggleOpen} className="text-blue-400/80 hover:text-blue-300">
+            <button onClick={toggleOpen} className="text-forest-400/80 hover:text-forest-300">
               <X size={20} />
             </button>
           </div>
@@ -382,7 +382,7 @@ const Chatbot: React.FC = () => {
           {/* Transcript Area */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-900">
             {turns.length === 0 && !partialText && (
-              <p className="text-blue-400/70 text-sm">
+              <p className="text-forest-400/70 text-sm">
                 Hello! I'm Sriharan's Personal Bot. Just speak to ask anything about me.
               </p>
             )}
@@ -391,13 +391,13 @@ const Chatbot: React.FC = () => {
               <div key={index} className="space-y-2">
                 {/* User's spoken question */}
                 {turn.question && (
-                  <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-blue-600 text-white">
+                  <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600 text-white">
                     {turn.question}
                   </div>
                 )}
                 {/* Bot's answer (spoken aloud, shown as text too) */}
-                <div className="max-w-[85%] mr-auto p-2 rounded-lg text-sm bg-gray-800 text-blue-400 font-mono flex items-start gap-2">
-                  <Volume2 size={14} className="mt-0.5 shrink-0 text-blue-500" />
+                <div className="max-w-[85%] mr-auto p-2 rounded-lg text-sm bg-gray-800 text-forest-400 font-mono flex items-start gap-2">
+                  <Volume2 size={14} className="mt-0.5 shrink-0 text-forest-500" />
                   <span>{turn.answer}</span>
                 </div>
               </div>
@@ -405,22 +405,22 @@ const Chatbot: React.FC = () => {
 
             {/* Live partial transcript while the user is speaking */}
             {partialText && (
-              <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-blue-600/40 text-blue-100 italic">
+              <div className="max-w-[85%] ml-auto p-2 rounded-lg text-sm bg-forest-600/40 text-forest-100 italic">
                 {partialText}
               </div>
             )}
 
             {status === 'thinking' && (
-              <div className="text-center text-sm text-blue-400/70">Bot is thinking…</div>
+              <div className="text-center text-sm text-forest-400/70">Bot is thinking…</div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Status Bar */}
           <div className="p-3 border-t border-gray-700 flex items-center gap-2">
-            <Mic size={16} className={status === 'listening' ? 'text-green-500' : 'text-blue-400/70'} />
+            <Mic size={16} className={status === 'listening' ? 'text-forest-500' : 'text-forest-400/70'} />
             <span className={`w-2.5 h-2.5 rounded-full ${dotColor[status]}`} />
-            <span className="text-sm font-mono text-blue-400/90">{statusLabel[status]}</span>
+            <span className="text-sm font-mono text-forest-400/90">{statusLabel[status]}</span>
           </div>
         </div>
       )}

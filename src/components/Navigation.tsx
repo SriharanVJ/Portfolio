@@ -51,7 +51,7 @@ export const Navigation = () => {
       ref={navRef}
       className={`fixed top-0 w-full z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-black/90 backdrop-blur-xl shadow-2xl shadow-purple-500/20 border-b border-purple-500/20'
+          ? 'bg-black/90 backdrop-blur-xl shadow-2xl shadow-crimson-500/20 border-b border-crimson-500/20'
           : 'bg-transparent'
       }`}
     >
@@ -63,8 +63,8 @@ export const Navigation = () => {
             className="flex items-center gap-3 group"
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-300" />
-              <div className="relative w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-r from-crimson-500 to-forest-500 rounded-xl blur-lg opacity-60 group-hover:opacity-100 group-hover:blur-xl transition-all duration-300" />
+              <div className="relative w-12 h-12 bg-gradient-to-br from-crimson-500 to-forest-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Code2 size={24} className="text-white group-hover:rotate-12 transition-transform duration-300" />
               </div>
             </div>
@@ -91,13 +91,13 @@ export const Navigation = () => {
 
                 {/* Active indicator */}
                 {activeSection === item.id && (
-                  <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-lg shadow-purple-500/50" />
+                  <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-crimson-500 to-forest-500 rounded-full shadow-lg shadow-crimson-500/50" />
                 )}
 
                 {/* Hover background */}
                 {activeSection !== item.id && (
                   <span
-                    className={`absolute inset-0 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-xl transition-all duration-300 ${
+                    className={`absolute inset-0 bg-gradient-to-r from-crimson-500/20 to-forest-500/20 rounded-xl transition-all duration-300 ${
                       hoveredItem === item.id ? 'opacity-100' : 'opacity-0'
                     }`}
                   />
@@ -105,7 +105,7 @@ export const Navigation = () => {
 
                 {/* Electric line on hover */}
                 {activeSection !== item.id && hoveredItem === item.id && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent animate-shimmer" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-forest-500 to-transparent animate-shimmer" />
                 )}
               </button>
             ))}
@@ -135,7 +135,7 @@ export const Navigation = () => {
                 onClick={() => scrollToSection(item.id)}
                 className={`w-full px-6 py-4 text-left rounded-2xl transition-all duration-300 relative overflow-hidden group ${
                   activeSection === item.id
-                    ? 'text-white bg-gradient-to-r from-purple-500/20 to-cyan-500/20'
+                    ? 'text-white bg-gradient-to-r from-crimson-500/20 to-forest-500/20'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
                 style={{
@@ -147,7 +147,7 @@ export const Navigation = () => {
                 <span className="relative z-10 font-bold">{item.label}</span>
 
                 {/* Hover effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 rounded-2xl" />
+                <span className="absolute inset-0 bg-gradient-to-r from-crimson-500/10 to-forest-500/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 rounded-2xl" />
               </button>
             ))}
           </div>
@@ -156,7 +156,7 @@ export const Navigation = () => {
 
       {/* Animated bottom border when scrolled */}
       {scrolled && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-cyan-500 to-purple-500 animate-gradient-shift" style={{ backgroundSize: '200% 100%' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-crimson-500 via-forest-500 to-crimson-500 animate-gradient-shift" style={{ backgroundSize: '200% 100%' }} />
       )}
     </nav>
   );

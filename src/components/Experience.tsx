@@ -33,20 +33,19 @@ export const Experience = () => {
       type: 'Full-time',
       location: 'Chennai, India',
       description: "Full-time AI Backend Developer building intelligent solutions with Python, FastAPI, and LLMs. Leading development of RAG systems and AI-powered applications for enterprise clients.",
-      gradient: 'from-purple-600 to-blue-600',
+      gradient: 'from-crimson-600 to-forest-600',
       achievements: [
         '🏆 Delivery Excellence Award for outstanding project delivery',
         'Built RAG Chatbot with 95% query accuracy',
-        'Healthcare System handling 500+ daily bookings',
-        'Real-time TTS integration with 3-second timeout',
+        'Real-time STT & TTS integration with Open Source Models',
         'Scalable FastAPI backends for production apps',
         'WhatsApp & Meta API integrations for e-commerce'
       ],
       technologies: ['Python', 'FastAPI', 'PostgreSQL', 'FAISS', 'LLMs', 'RAG', 'Gemini'],
       metrics: [
-        { label: 'Projects', value: '5+', color: 'from-purple-500 to-blue-500' },
-        { label: 'Accuracy', value: '95%', color: 'from-cyan-500 to-blue-500' },
-        { label: 'Users', value: '1000+', color: 'from-pink-500 to-purple-500' }
+        { label: 'Projects', value: '5+', color: 'from-crimson-500 to-forest-500' },
+        { label: 'Accuracy', value: '95%', color: 'from-forest-500 to-forest-500' },
+        { label: 'Users', value: '1000+', color: 'from-crimson-500 to-crimson-500' }
       ]
     },
     {
@@ -56,7 +55,7 @@ export const Experience = () => {
       type: 'Internship',
       location: 'Chennai, India',
       description: "4-month internship focused on learning and implementing AI/ML solutions. Gained hands-on experience with FastAPI, RAG systems, and modern backend development practices.",
-      gradient: 'from-green-600 to-emerald-600',
+      gradient: 'from-forest-600 to-crimson-600',
       achievements: [
         'Learned and implemented RAG systems with vector databases',
         'Developed RESTful APIs using FastAPI with PostgreSQL',
@@ -66,26 +65,26 @@ export const Experience = () => {
       ],
       technologies: ['Python', 'FastAPI', 'PostgreSQL', 'LLMs', 'REST APIs', 'Alembic'],
       metrics: [
-        { label: 'APIs Built', value: '10+', color: 'from-green-500 to-emerald-500' },
-        { label: 'Skills', value: '8+', color: 'from-cyan-500 to-green-500' },
-        { label: 'Projects', value: '3', color: 'from-blue-500 to-cyan-500' }
+        { label: 'APIs Built', value: '10+', color: 'from-forest-500 to-crimson-500' },
+        { label: 'Skills', value: '8+', color: 'from-forest-500 to-forest-500' },
+        { label: 'Projects', value: '3', color: 'from-forest-500 to-forest-500' }
       ]
     }
   ];
 
   return (
-    <section id="experience" ref={sectionRef} className="py-32 relative overflow-hidden bg-[#030014]">
+    <section id="experience" ref={sectionRef} className="py-32 relative overflow-hidden bg-[#171717]">
       {/* Background Elements */}
       <div className="absolute inset-0 mesh-gradient opacity-40" />
-      <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-morphing-blob" />
-      <div className="absolute bottom-1/3 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
+      <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-crimson-600/10 rounded-full blur-[120px] animate-morphing-blob" />
+      <div className="absolute bottom-1/3 right-0 w-[500px] h-[500px] bg-forest-600/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
 
       {/* Scan Lines */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(2)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-20"
+            className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent opacity-20"
             style={{
               top: `${35 + i * 30}%`,
               animation: `scan-line 7s linear infinite`,
@@ -99,7 +98,7 @@ export const Experience = () => {
         {/* Section Header */}
         <div className="text-center mb-20">
           <span
-            className={`inline-block px-6 py-3 glass rounded-full text-sm font-bold text-purple-400 mb-8 transition-all duration-1000 ${
+            className={`inline-block px-6 py-3 glass rounded-full text-sm font-bold text-crimson-400 mb-8 transition-all duration-1000 ${
               isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0 translate-y-12'
             }`}
           >
@@ -111,7 +110,7 @@ export const Experience = () => {
             }`}
             style={{ animationDelay: '0.1s' }}
           >
-            <span className="gradient-text-cyber text-glow-cyan">Professional</span>
+            <span className={`gradient-text-sage inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Professional</span>
             <span className="text-white"> Journey</span>
           </h2>
           <p
@@ -132,8 +131,8 @@ export const Experience = () => {
             style={{
               opacity: isVisible ? 1 : 0,
               transition: 'opacity 1s ease',
-              background: 'linear-gradient(to bottom, #a855f7 0%, #6366f1 50%, #3b82f6 100%)',
-              boxShadow: '0 0 20px rgba(168, 85, 247, 0.5)'
+              background: 'linear-gradient(to bottom, #a31c1b 0%, #c23937 50%, #6e1312 100%)',
+              boxShadow: '0 0 20px rgba(163, 28, 27, 0.5)'
             }}
           />
 
@@ -142,7 +141,7 @@ export const Experience = () => {
             {experiences.map((_, index) => (
               <div
                 key={index}
-                className="absolute w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 border-4 border-[#030014] shadow-2xl shadow-purple-500/50"
+                className="absolute w-6 h-6 rounded-full bg-gradient-to-r from-crimson-500 to-forest-500 border-4 border-[#171717] shadow-2xl shadow-crimson-500/50"
                 style={{
                   top: `${20 + index * 40}%`,
                   opacity: isVisible ? 1 : 0,
@@ -169,7 +168,7 @@ export const Experience = () => {
               >
                 <Card
                   className={`glass border-0 overflow-hidden card-hover card-3d group perspective-1000 gpu-accelerated transition-all duration-500 ${
-                    expandedCard === index ? 'ring-4 ring-purple-500/40 scale-[1.02]' : ''
+                    expandedCard === index ? 'ring-4 ring-crimson-500/40 scale-[1.02]' : ''
                   }`}
                   onMouseMove={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -205,11 +204,11 @@ export const Experience = () => {
 
                       <div className="flex flex-wrap gap-3">
                         <div className="flex items-center gap-2 px-5 py-3 glass rounded-2xl hover:glass-dark transition-all duration-300">
-                          <Briefcase size={18} className="text-purple-400" />
+                          <Briefcase size={18} className="text-crimson-400" />
                           <span className="text-white font-bold">{exp.duration}</span>
                         </div>
                         <div className="flex items-center gap-2 px-5 py-3 glass rounded-2xl hover:glass-dark transition-all duration-300">
-                          <MapPin size={18} className="text-cyan-400" />
+                          <MapPin size={18} className="text-forest-400" />
                           <span className="text-white font-bold">{exp.location}</span>
                         </div>
                         <div className={`flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r ${exp.gradient} shadow-lg`}>
@@ -225,9 +224,9 @@ export const Experience = () => {
 
                     {/* Award Badge */}
                     {exp.type === 'Full-time' && (
-                      <div className="mb-8 p-6 glass-dark rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 card-shine group">
+                      <div className="mb-8 p-6 glass-dark rounded-2xl bg-gradient-to-r from-crimson-500/10 to-forest-500/10 border border-crimson-500/30 card-shine group">
                         <div className="flex items-center gap-4">
-                          <div className="p-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg animate-pulse-glow">
+                          <div className="p-3 rounded-2xl bg-gradient-to-r from-crimson-500 to-forest-500 shadow-lg animate-pulse-glow">
                             <Award size={24} className="text-white" />
                           </div>
                           <div>
@@ -242,7 +241,7 @@ export const Experience = () => {
                     {exp.metrics && (
                       <div className="mb-8 p-8 glass rounded-3xl">
                         <h4 className="text-lg font-black text-zinc-400 mb-6 flex items-center gap-2">
-                          <TrendingUp size={20} className="text-yellow-500" />
+                          <TrendingUp size={20} className="text-crimson-500" />
                           KEY METRICS
                         </h4>
                         <div className="grid grid-cols-3 gap-6">
@@ -262,14 +261,14 @@ export const Experience = () => {
                     <div className="glass rounded-2xl p-6">
                       <button
                         onClick={() => setExpandedCard(expandedCard === index ? null : index)}
-                        className="w-full flex items-center justify-between mb-6 hover:text-purple-400 transition-colors"
+                        className="w-full flex items-center justify-between mb-6 hover:text-crimson-400 transition-colors"
                       >
                         <h4 className="font-black text-white text-xl flex items-center gap-2">
-                          <Trophy size={24} className="text-yellow-500" />
+                          <Trophy size={24} className="text-crimson-500" />
                           KEY ACHIEVEMENTS
                         </h4>
                         {expandedCard === index ? (
-                          <ChevronUp size={24} className="text-purple-400" />
+                          <ChevronUp size={24} className="text-crimson-400" />
                         ) : (
                           <ChevronDown size={24} className="text-zinc-400" />
                         )}
@@ -288,7 +287,7 @@ export const Experience = () => {
                             >
                               <Rocket
                                 size={20}
-                                className="text-purple-400 mt-1 flex-shrink-0 group-hover/achievement:scale-125 group-hover/achievement:rotate-12 transition-all duration-300"
+                                className="text-crimson-400 mt-1 flex-shrink-0 group-hover/achievement:scale-125 group-hover/achievement:rotate-12 transition-all duration-300"
                               />
                               <span>{achievement}</span>
                             </li>
@@ -309,7 +308,7 @@ export const Experience = () => {
                           ))}
                           <button
                             onClick={() => setExpandedCard(index)}
-                            className="text-purple-400 hover:text-purple-300 font-bold transition-colors"
+                            className="text-crimson-400 hover:text-crimson-300 font-bold transition-colors"
                           >
                             +{exp.achievements.length - 2} more achievements
                           </button>
@@ -320,7 +319,7 @@ export const Experience = () => {
                     {/* Technologies */}
                     <div className="mt-8">
                       <div className="flex items-center gap-2 mb-6">
-                        <Code size={24} className="text-cyan-400" />
+                        <Code size={24} className="text-forest-400" />
                         <h4 className="font-black text-white text-xl">TECHNOLOGIES</h4>
                       </div>
                       <div className="flex flex-wrap gap-3">
@@ -351,7 +350,7 @@ export const Experience = () => {
             transitionDelay: '0.8s'
           }}
         >
-          <div className="inline-flex p-4 rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 mb-6 animate-bounce-soft shadow-2xl shadow-purple-500/30">
+          <div className="inline-flex p-4 rounded-3xl bg-gradient-to-r from-crimson-500 to-forest-500 mb-6 animate-bounce-soft shadow-2xl shadow-crimson-500/30">
             <Rocket size={32} className="text-white" />
           </div>
           <h3 className="text-3xl font-black text-white mb-6">

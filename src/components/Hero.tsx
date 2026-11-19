@@ -23,7 +23,7 @@ export const Hero = () => {
     <section
       id="home"
       ref={heroRef}
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#030014]"
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#171717]"
     >
       {/* Bold Animated Background - Tech Grid */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -32,8 +32,8 @@ export const Hero = () => {
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(168, 85, 247, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(168, 85, 247, 0.3) 1px, transparent 1px)
+              linear-gradient(rgba(163, 28, 27, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(163, 28, 27, 0.3) 1px, transparent 1px)
             `,
             backgroundSize: '60px 60px',
           }}
@@ -44,7 +44,7 @@ export const Hero = () => {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-30"
+              className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent opacity-30"
               style={{
                 top: `${20 + i * 30}%`,
                 animation: `scan-line 4s linear infinite`,
@@ -55,9 +55,9 @@ export const Hero = () => {
         </div>
 
         {/* Large Dramatic Orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] animate-morphing-blob" />
-        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
-        <div className="absolute bottom-1/4 left-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-4000" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-crimson-600/20 rounded-full blur-[120px] animate-morphing-blob" />
+        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-forest-600/15 rounded-full blur-[120px] animate-morphing-blob animation-delay-2000" />
+        <div className="absolute bottom-1/4 left-1/2 w-[500px] h-[500px] bg-forest-500/10 rounded-full blur-[120px] animate-morphing-blob animation-delay-4000" />
 
         {/* Data Flow Particles */}
         {[...Array(15)].map((_, i) => (
@@ -80,12 +80,12 @@ export const Hero = () => {
         >
           <div className="relative">
             {/* Outer Glow Rings */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full blur-2xl opacity-60 animate-pulse-glow" />
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full blur-xl pulse-ring" />
+            <div className="absolute inset-0 bg-gradient-to-r from-crimson-500 to-forest-500 rounded-full blur-2xl opacity-60 animate-pulse-glow" />
+            <div className="absolute inset-0 bg-gradient-to-r from-crimson-500 to-forest-500 rounded-full blur-xl pulse-ring" />
 
             {/* Main Icon Container */}
-            <div className="relative w-32 h-32 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 rounded-full flex items-center justify-center glow-blue animate-float card-shine">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/30 to-cyan-400/30 animate-shimmer" />
+            <div className="relative w-32 h-32 bg-gradient-to-br from-crimson-500 via-forest-500 to-forest-500 rounded-full flex items-center justify-center glow-blue animate-float card-shine">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-crimson-400/30 to-forest-400/30 animate-shimmer" />
               <Code2 size={64} className="text-white animate-neon-flicker" />
             </div>
 
@@ -95,8 +95,8 @@ export const Hero = () => {
                 key={i}
                 className="absolute w-3 h-3 rounded-full"
                 style={{
-                  background: i % 2 === 0 ? '#a855f7' : '#06b6d4',
-                  boxShadow: `0 0 20px ${i % 2 === 0 ? '#a855f7' : '#06b6d4'}`,
+                  background: i % 2 === 0 ? '#a31c1b' : '#54806a',
+                  boxShadow: `0 0 20px ${i % 2 === 0 ? '#a31c1b' : '#54806a'}`,
                   animation: `orbit ${8 + i * 2}s linear infinite`,
                   animationDelay: `${i * 0.5}s`,
                 }}
@@ -104,10 +104,10 @@ export const Hero = () => {
             ))}
 
             {/* Tech Symbols */}
-            <div className="absolute -top-4 -right-4 text-purple-400 animate-bounce">
+            <div className="absolute -top-4 -right-4 text-crimson-400 animate-bounce">
               <Terminal size={24} />
             </div>
-            <div className="absolute -bottom-4 -left-4 text-cyan-400 animate-bounce animation-delay-1000">
+            <div className="absolute -bottom-4 -left-4 text-forest-400 animate-bounce animation-delay-1000">
               <Cpu size={24} />
             </div>
           </div>
@@ -120,14 +120,14 @@ export const Hero = () => {
           }`}
           style={{ animationDelay: '0.2s' }}
         >
-          <Sparkles className="w-6 h-6 text-yellow-400 animate-bounce" />
+          <Sparkles className="w-6 h-6 text-crimson-400 animate-bounce" />
           <span className="gradient-text-cyber font-bold">Welcome to my portfolio</span>
-          <Sparkles className="w-6 h-6 text-yellow-400 animate-bounce animation-delay-500" />
+          <Sparkles className="w-6 h-6 text-crimson-400 animate-bounce animation-delay-500" />
         </div>
 
         {/* Dramatic Name with Typewriter */}
         <h1
-          className={`text-6xl sm:text-8xl md:text-9xl font-black tracking-tight font-space transition-all duration-1000 ${
+          className={`text-6xl sm:text-8xl md:text-9xl font-semibold tracking-normal font-syne transition-all duration-1000 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ animationDelay: '0.4s' }}
@@ -136,7 +136,7 @@ export const Hero = () => {
             Hi <span className="inline-block animate-wave">👋</span>, I'm
           </span>
           <div className="relative inline-block">
-            <span className="text-white inline-block">
+            <span className="gradient-text-sage inline-block">
               {showTyping ? (
                 <Typewriter
                   words={['Sriharan Vijayakumar', 'AI Developer', 'Python Expert', 'Backend Engineer']}
@@ -151,7 +151,7 @@ export const Hero = () => {
                 'Sriharan Vijayakumar'
               )}
             </span>
-            <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 animate-pulse-glow" />
+            <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-crimson-500 via-forest-500 to-forest-500 animate-pulse-glow" />
           </div>
         </h1>
 
@@ -160,8 +160,7 @@ export const Hero = () => {
           className={`relative inline-block transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
           style={{ animationDelay: '0.6s' }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 blur-2xl opacity-60 animate-glow-pulse" />
-          <p className="relative text-3xl md:text-4xl lg:text-5xl font-black gradient-text-fire text-glow">
+          <p className="relative text-3xl md:text-4xl lg:text-5xl font-black gradient-text-fire">
             Python Backend AI Developer
           </p>
         </div>
@@ -172,11 +171,11 @@ export const Hero = () => {
           style={{ animationDelay: '0.8s' }}
         >
           {[
-            { name: 'Python', color: 'from-blue-500 to-cyan-500', icon: '🐍' },
-            { name: 'FastAPI', color: 'from-green-500 to-emerald-500', icon: '⚡' },
-            { name: 'LLMs', color: 'from-purple-500 to-pink-500', icon: '🤖' },
-            { name: 'RAG', color: 'from-orange-500 to-red-500', icon: '🔮' },
-            { name: 'PostgreSQL', color: 'from-blue-600 to-indigo-600', icon: '🗄️' }
+            { name: 'Python', color: 'from-forest-500 to-forest-500', icon: '🐍' },
+            { name: 'FastAPI', color: 'from-forest-500 to-crimson-500', icon: '⚡' },
+            { name: 'LLMs', color: 'from-crimson-500 to-crimson-500', icon: '🤖' },
+            { name: 'RAG', color: 'from-forest-500 to-crimson-500', icon: '🔮' },
+            { name: 'PostgreSQL', color: 'from-forest-600 to-forest-600', icon: '🗄️' }
           ].map((tech, index) => (
             <div
               key={tech.name}
@@ -213,7 +212,7 @@ export const Hero = () => {
           <Button
             asChild
             size="lg"
-            className="text-xl px-10 py-8 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-emerald-500/30 group ripple-effect"
+            className="text-xl px-10 py-8 bg-gradient-to-r from-crimson-500 to-forest-500 hover:from-crimson-600 hover:to-forest-600 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-crimson-500/30 group ripple-effect"
           >
             <a href="/SriharanVijayakumar_Resume.pdf" download className="flex items-center">
               <Download className="mr-3 h-6 w-5 group-hover:animate-bounce" />
@@ -228,9 +227,9 @@ export const Hero = () => {
           style={{ animationDelay: '1.6s' }}
         >
           {[
-            { icon: Github, href: 'https://github.com/sriharanvj', label: 'GitHub', color: 'from-purple-600 to-blue-600' },
-            { icon: Linkedin, href: 'https://www.linkedin.com/in/sriharan-vijayakumar-b936b326a', label: 'LinkedIn', color: 'from-blue-600 to-cyan-600' },
-            { icon: Mail, href: 'mailto:sriharanvijayakumarsk@gmail.com', label: 'Email', color: 'from-purple-600 to-pink-600' },
+            { icon: Github, href: 'https://github.com/sriharanvj', label: 'GitHub', color: 'from-crimson-600 to-forest-600' },
+            { icon: Linkedin, href: 'https://www.linkedin.com/in/sriharan-vijayakumar-b936b326a', label: 'LinkedIn', color: 'from-forest-600 to-forest-600' },
+            { icon: Mail, href: 'mailto:sriharanvijayakumarsk@gmail.com', label: 'Email', color: 'from-crimson-600 to-crimson-600' },
           ].map((social, index) => (
             <a
               key={social.label}
@@ -268,14 +267,14 @@ export const Hero = () => {
           onClick={scrollToAbout}
           className="p-4 glass rounded-2xl hover:scale-110 transition-all duration-300 scroll-indicator group"
         >
-          <ChevronDown size={32} className="text-purple-400 group-hover:text-cyan-400 transition-colors animate-bounce" />
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity blur-xl" />
+          <ChevronDown size={32} className="text-crimson-400 group-hover:text-forest-400 transition-colors animate-bounce" />
+          <div className="absolute inset-0 bg-gradient-to-r from-crimson-500 to-forest-500 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity blur-xl" />
         </button>
       </div>
 
       {/* Bottom Gradient Fade with Scan Line */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#030014] via-[#030014]/90 to-transparent pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-shimmer" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#171717] via-[#171717]/90 to-transparent pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-crimson-500 to-transparent animate-shimmer" />
       </div>
     </section>
   );

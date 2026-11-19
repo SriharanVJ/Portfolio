@@ -78,14 +78,14 @@ const ContactForm = () => {
       label: 'Email',
       value: 'sriharanvijayakumarsk@gmail.com',
       href: 'mailto:sriharanvijayakumarsk@gmail.com',
-      gradient: 'from-cyan-500 to-blue-500'
+      gradient: 'from-forest-500 to-forest-500'
     },
     {
       icon: <MapPin className="h-6 w-6" />,
       label: 'Location',
       value: 'Chennai, India',
       href: null,
-      gradient: 'from-purple-500 to-pink-500'
+      gradient: 'from-crimson-500 to-crimson-500'
     }
   ];
 
@@ -94,26 +94,26 @@ const ContactForm = () => {
       icon: <Github className="h-6 w-6" />,
       label: 'GitHub',
       href: 'https://github.com/sriharanvj',
-      gradient: 'from-purple-600 to-blue-600'
+      gradient: 'from-crimson-600 to-forest-600'
     },
     {
       icon: <Linkedin className="h-6 w-6" />,
       label: 'LinkedIn',
       href: 'https://www.linkedin.com/in/sriharan-vijayakumar-b936b326a',
-      gradient: 'from-blue-600 to-cyan-600'
+      gradient: 'from-forest-600 to-forest-600'
     }
   ];
 
   return (
-    <section id="contact" ref={sectionRef} className="py-32 relative overflow-hidden bg-[#030014]">
+    <section id="contact" ref={sectionRef} className="py-32 relative overflow-hidden bg-[#171717]">
       {/* Background Elements */}
       <div className="absolute inset-0 mesh-gradient opacity-40" />
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[700px] h-[700px] bg-purple-600/10 rounded-full blur-[120px] animate-morphing-blob" />
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[700px] h-[700px] bg-crimson-600/10 rounded-full blur-[120px] animate-morphing-blob" />
 
       {/* Scan Lines */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
-          className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-20"
+          className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-forest-500 to-transparent opacity-20"
           style={{
             top: '50%',
             animation: `scan-line 8s linear infinite`,
@@ -125,7 +125,7 @@ const ContactForm = () => {
         {/* Section Header */}
         <div className="text-center mb-20">
           <span
-            className={`inline-block px-6 py-3 glass rounded-full text-sm font-bold text-purple-400 mb-8 transition-all duration-1000 ${
+            className={`inline-block px-6 py-3 glass rounded-full text-sm font-bold text-crimson-400 mb-8 transition-all duration-1000 ${
               isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0 translate-y-12'
             }`}
           >
@@ -137,7 +137,7 @@ const ContactForm = () => {
             }`}
             style={{ animationDelay: '0.1s' }}
           >
-            <span className="gradient-text-cyber text-glow-cyan">Let's Work</span>
+            <span className={`gradient-text-sage inline-block ${isVisible ? 'animate-blur-in' : ''}`}>Let's Work</span>
             <span className="text-white"> Together</span>
           </h2>
           <p
@@ -164,7 +164,7 @@ const ContactForm = () => {
             <Card className="glass border-0 card-shine">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <MessageCircle className="text-purple-400 animate-pulse" />
+                  <MessageCircle className="text-crimson-400 animate-pulse" />
                   Get in Touch
                 </CardTitle>
               </CardHeader>
@@ -183,7 +183,7 @@ const ContactForm = () => {
                     {info.href ? (
                       <a
                         href={info.href}
-                        className="text-xl text-white hover:text-cyan-400 transition-colors font-bold link-underline"
+                        className="text-xl text-white hover:text-forest-400 transition-colors font-bold link-underline"
                       >
                         {info.value}
                       </a>
@@ -254,7 +254,7 @@ const ContactForm = () => {
                       <label
                         htmlFor="name"
                         className={`block text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                          focusedField === 'name' ? 'text-purple-400 translate-x-2' : 'text-zinc-400'
+                          focusedField === 'name' ? 'text-crimson-400 translate-x-2' : 'text-zinc-400'
                         }`}
                       >
                         Name *
@@ -269,8 +269,8 @@ const ContactForm = () => {
                           onBlur={() => setFocusedField(null)}
                           required
                           placeholder="Your name"
-                          className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-purple-500 rounded-xl h-14 px-5 transition-all duration-300 ${
-                            focusedField === 'name' ? 'ring-4 ring-purple-500/20 shadow-lg shadow-purple-500/10' : ''
+                          className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-crimson-500 rounded-xl h-14 px-5 transition-all duration-300 ${
+                            focusedField === 'name' ? 'ring-4 ring-crimson-500/20 shadow-lg shadow-crimson-500/10' : ''
                           }`}
                         />
                       </div>
@@ -281,7 +281,7 @@ const ContactForm = () => {
                       <label
                         htmlFor="email"
                         className={`block text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                          focusedField === 'email' ? 'text-purple-400 translate-x-2' : 'text-zinc-400'
+                          focusedField === 'email' ? 'text-crimson-400 translate-x-2' : 'text-zinc-400'
                         }`}
                       >
                         Email *
@@ -297,8 +297,8 @@ const ContactForm = () => {
                           onBlur={() => setFocusedField(null)}
                           required
                           placeholder="your.email@example.com"
-                          className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-purple-500 rounded-xl h-14 px-5 transition-all duration-300 ${
-                            focusedField === 'email' ? 'ring-4 ring-purple-500/20 shadow-lg shadow-purple-500/10' : ''
+                          className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-crimson-500 rounded-xl h-14 px-5 transition-all duration-300 ${
+                            focusedField === 'email' ? 'ring-4 ring-crimson-500/20 shadow-lg shadow-crimson-500/10' : ''
                           }`}
                         />
                       </div>
@@ -310,7 +310,7 @@ const ContactForm = () => {
                     <label
                       htmlFor="subject"
                       className={`block text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                        focusedField === 'subject' ? 'text-purple-400 translate-x-2' : 'text-zinc-400'
+                        focusedField === 'subject' ? 'text-crimson-400 translate-x-2' : 'text-zinc-400'
                       }`}
                     >
                       Subject *
@@ -325,8 +325,8 @@ const ContactForm = () => {
                         onBlur={() => setFocusedField(null)}
                         required
                         placeholder="What's this about?"
-                        className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-purple-500 rounded-xl h-14 px-5 transition-all duration-300 ${
-                          focusedField === 'subject' ? 'ring-4 ring-purple-500/20 shadow-lg shadow-purple-500/10' : ''
+                        className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-crimson-500 rounded-xl h-14 px-5 transition-all duration-300 ${
+                          focusedField === 'subject' ? 'ring-4 ring-crimson-500/20 shadow-lg shadow-crimson-500/10' : ''
                         }`}
                       />
                     </div>
@@ -337,7 +337,7 @@ const ContactForm = () => {
                     <label
                       htmlFor="message"
                       className={`block text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                        focusedField === 'message' ? 'text-purple-400 translate-x-2' : 'text-zinc-400'
+                        focusedField === 'message' ? 'text-crimson-400 translate-x-2' : 'text-zinc-400'
                       }`}
                     >
                       Message *
@@ -353,8 +353,8 @@ const ContactForm = () => {
                         required
                         rows={6}
                         placeholder="Tell me about your project or idea..."
-                        className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-purple-500 rounded-xl px-5 py-4 transition-all duration-300 resize-none ${
-                          focusedField === 'message' ? 'ring-4 ring-purple-500/20 shadow-lg shadow-purple-500/10' : ''
+                        className={`glass-dark bg-transparent border-2 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-crimson-500 rounded-xl px-5 py-4 transition-all duration-300 resize-none ${
+                          focusedField === 'message' ? 'ring-4 ring-crimson-500/20 shadow-lg shadow-crimson-500/10' : ''
                         }`}
                       />
                     </div>
@@ -366,7 +366,7 @@ const ContactForm = () => {
                     type="submit"
                     size="lg"
                     disabled={isSending}
-                    className="w-full btn-cyber rounded-2xl py-8 text-xl ripple-effect group shadow-2xl shadow-purple-500/30"
+                    className="w-full btn-cyber rounded-2xl py-8 text-xl ripple-effect group shadow-2xl shadow-crimson-500/30"
                   >
                     {isSending ? (
                       <>
@@ -383,7 +383,7 @@ const ContactForm = () => {
 
                   {/* Status Messages */}
                   {submitStatus === 'success' && (
-                    <div className="p-6 glass bg-green-500/10 border-2 border-green-500/30 text-green-300 rounded-2xl flex items-center gap-4 animate-fade-in-up">
+                    <div className="p-6 glass bg-forest-500/10 border-2 border-forest-500/30 text-forest-300 rounded-2xl flex items-center gap-4 animate-fade-in-up">
                       <CheckCircle className="w-8 h-8 animate-bounce" />
                       <div>
                         <div className="font-bold text-lg">Message sent successfully!</div>
@@ -416,7 +416,7 @@ const ContactForm = () => {
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <p className="text-zinc-500 text-base">
-              © 2025 Sriharan Vijayakumar. Crafted with <Zap className="inline w-4 h-4 text-purple-400" /> passion.
+              © 2025 Sriharan Vijayakumar. Crafted with <Zap className="inline w-4 h-4 text-crimson-400" /> passion.
             </p>
             <div className="flex items-center gap-8">
               {[

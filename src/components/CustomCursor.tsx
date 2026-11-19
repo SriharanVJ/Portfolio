@@ -52,28 +52,28 @@ export const CustomCursor = () => {
       >
         {/* Main cursor */}
         <div
-          className={`w-8 h-8 rounded-full border-2 border-purple-500 transition-all duration-200 ${
-            hovered ? 'scale-150 bg-purple-500/20' : 'scale-100'
+          className={`w-8 h-8 rounded-full border-2 border-crimson-500 transition-all duration-200 ${
+            hovered ? 'scale-150 bg-crimson-500/20' : 'scale-100'
           } ${clicked ? 'scale-90' : ''}`}
         />
 
         {/* Inner dot */}
         <div
-          className={`absolute top-1/2 left-1/2 w-1 h-1 bg-purple-400 rounded-full transition-all duration-200 ${
+          className={`absolute top-1/2 left-1/2 w-1 h-1 bg-crimson-400 rounded-full transition-all duration-200 ${
             hovered ? 'scale-0' : 'scale-100'
           }`}
           style={{ transform: 'translate(-50%, -50%)' }}
         />
 
         {/* Trailing effect */}
-        <div className="absolute inset-0 rounded-full border border-purple-500/30 animate-ping" />
+        <div className="absolute inset-0 rounded-full border border-crimson-500/30 animate-ping" />
       </div>
 
       {/* Cursor trail */}
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
-          className="fixed pointer-events-none z-[9999] hidden md:block w-2 h-2 bg-purple-500/20 rounded-full"
+          className="fixed pointer-events-none z-[9999] hidden md:block w-2 h-2 bg-crimson-500/20 rounded-full"
           style={{
             left: position.x,
             top: position.y,
