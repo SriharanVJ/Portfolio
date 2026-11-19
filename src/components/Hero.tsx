@@ -73,7 +73,7 @@ export const Hero = () => {
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-8 md:space-y-12">
         {/* Dramatic Logo with Orbiting Elements */}
         <div
           className={`flex justify-center mb-8 transition-all duration-1000 ${isLoaded ? 'animate-scale-in opacity-100' : 'opacity-0'}`}
@@ -127,7 +127,7 @@ export const Hero = () => {
 
         {/* Dramatic Name with Typewriter */}
         <h1
-          className={`text-6xl sm:text-8xl md:text-9xl font-semibold tracking-normal font-syne transition-all duration-1000 ${
+          className={`text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-semibold tracking-normal font-syne transition-all duration-1000 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ animationDelay: '0.4s' }}
@@ -160,7 +160,7 @@ export const Hero = () => {
           className={`relative inline-block transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
           style={{ animationDelay: '0.6s' }}
         >
-          <p className="relative text-3xl md:text-4xl lg:text-5xl font-black gradient-text-fire">
+          <p className="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black gradient-text-fire">
             Python Backend AI Developer
           </p>
         </div>
@@ -194,13 +194,13 @@ export const Hero = () => {
 
         {/* Dramatic CTA Buttons */}
         <div
-          className={`flex flex-col sm:flex-row gap-6 justify-center pt-8 transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
+          className={`flex flex-col sm:flex-row gap-6 justify-center pt-4 sm:pt-8 transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
           style={{ animationDelay: '1.4s' }}
         >
           <Button
             asChild
             size="lg"
-            className="text-xl px-10 py-8 btn-cyber rounded-xl ripple-effect group"
+            className="w-full sm:w-auto px-6 py-4 text-base sm:px-10 sm:py-8 sm:text-xl btn-cyber rounded-xl ripple-effect group"
           >
             <a href="mailto:sriharanvijayakumarsk@gmail.com" className="flex items-center">
               <Mail className="mr-3 h-6 w-6 group-hover:animate-bounce" />
@@ -212,7 +212,7 @@ export const Hero = () => {
           <Button
             asChild
             size="lg"
-            className="text-xl px-10 py-8 bg-gradient-to-r from-crimson-500 to-forest-500 hover:from-crimson-600 hover:to-forest-600 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-crimson-500/30 group ripple-effect"
+            className="w-full sm:w-auto px-6 py-4 text-base sm:px-10 sm:py-8 sm:text-xl bg-gradient-to-r from-crimson-500 to-forest-500 hover:from-crimson-600 hover:to-forest-600 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl shadow-crimson-500/30 group ripple-effect"
           >
             <a href="/SriharanVijayakumar_Resume.pdf" download className="flex items-center">
               <Download className="mr-3 h-6 w-5 group-hover:animate-bounce" />
@@ -223,7 +223,7 @@ export const Hero = () => {
 
         {/* Social Icons with Electric Effects */}
         <div
-          className={`flex justify-center space-x-10 pt-10 transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
+          className={`flex justify-center space-x-6 sm:space-x-10 pt-6 sm:pt-10 transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
           style={{ animationDelay: '1.6s' }}
         >
           {[
@@ -257,9 +257,10 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Bold Scroll Indicator */}
+      {/* Bold Scroll Indicator — desktop only: on phones the hero exceeds one
+          viewport and this would overlap the social icons row */}
       <div
-        className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-3 transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
+        className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden md:flex flex-col items-center gap-3 transition-all duration-1000 ${isLoaded ? 'animate-fade-in-up opacity-100' : 'opacity-0'}`}
         style={{ animationDelay: '1.8s' }}
       >
         <span className="text-sm text-zinc-400 font-medium animate-pulse">Scroll to explore</span>
