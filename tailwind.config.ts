@@ -19,6 +19,29 @@ export default {
     },
     extend: {
       colors: {
+        crimson: {
+          100: "#f7dbdb",
+          200: "#eebcbc",
+          300: "#e08f8e",
+          400: "#d15f5e",
+          500: "#c23937",
+          600: "#A31C1B",
+          700: "#821615",
+          800: "#611110",
+          900: "#4a0d0c",
+        },
+        forest: {
+          100: "#dfe9e4",
+          200: "#c0d4c9",
+          300: "#a1bfae",
+          400: "#7aa28d",
+          500: "#54806a",
+          600: "#3b6150",
+          700: "#274435",
+          800: "#172a20",
+          900: "#0e1c15",
+          950: "#06110C",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -73,6 +96,8 @@ export default {
         poppins: ["Poppins", "sans-serif"],
         inter: ["Inter", "sans-serif"],
         space: ["Space Grotesk", "sans-serif"],
+        display: ["Playfair Display", "serif"],
+        syne: ["Syne", "sans-serif"],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -121,6 +146,10 @@ export default {
           "0%": { backgroundPosition: "-1000px 0" },
           "100%": { backgroundPosition: "1000px 0" },
         },
+        "blur-in": {
+          "0%": { opacity: "0", filter: "blur(15px)", transform: "translateY(24px)" },
+          "100%": { opacity: "1", filter: "blur(1px)", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -133,6 +162,7 @@ export default {
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
         blob: "blob 7s infinite",
         shimmer: "shimmer 2s linear infinite",
+        "blur-in": "blur-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
     },
   },

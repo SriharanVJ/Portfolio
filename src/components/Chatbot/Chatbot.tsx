@@ -1,293 +1,594 @@
-import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import { X, Send } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Mic } from 'lucide-react';
+import type { MicVAD } from '@ricky0123/vad-web';
 
 // Ensure this is the RAW URL, typically starting with raw.githubusercontent.com
-const SRIHARAN_IMAGE_URL = 'https://raw.githubusercontent.com/SriharanVJ/Portfolio/main/Sriharan%20Photo.jpg'; 
+const SRIHARAN_IMAGE_URL = 'https://raw.githubusercontent.com/SriharanVJ/Portfolio/main/Sriharan%20Photo.jpg';
 
-// Set the base URL for your FastAPI server
-const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000'; 
+// Same FastAPI base URL as before — the WS endpoint is derived from it (no new env var)
+const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
+const VOICE_WS_URL = FASTAPI_URL.replace(/^http/, 'ws') + '/ws/voice';
 
-interface BotResponseData {
-  response_text: string;
-  audio_url: string; 
-}
+// Audio formats: mic -> 16 kHz PCM16 (Whisper), playback <- 24 kHz PCM16 (Kokoro)
+const MIC_SAMPLE_RATE = 16000;
+const TTS_SAMPLE_RATE = 24000;
 
-// **Constant for the desired timeout in milliseconds**
-const CHATBOT_TIMEOUT_MS = 12000; 
+// Client-side barge-in tuning. While the bot speaks, sustained mic energy is
+// the user talking over the answer — browser AEC already stripped the bot's
+// own voice from the capture, so Murf never has to hear the interruption
+// first (its VAD waits for silence, which is what made turns queue up).
+const BARGE_RMS = 0.04;          // speech level after AGC; AEC residue sits below this
+const BARGE_SPEECH_MS = 300;     // sustained speech needed to fire
+const BARGE_ARM_DELAY_MS = 700;  // let AEC converge after playback starts
+const BARGE_COOLDOWN_MS = 800;   // one interrupt per utterance, not a machine gun
+
+type Status = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
+
+// RMS (0..~0.5) of an AnalyserNode's time-domain data — drives the avatar effects
+const analyserRms = (analyser: AnalyserNode | null, buf: Uint8Array): number => {
+  if (!analyser) return 0;
+  analyser.getByteTimeDomainData(buf);
+  let sum = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = (buf[i] - 128) / 128;
+    sum += v * v;
+  }
+  return Math.sqrt(sum / buf.length);
+};
 
 const Chatbot: React.FC = () => {
-  const [messages, setMessages] = useState<string[]>([]); 
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  // State for the error/maintenance popup
-  const [isErrorPopupOpen, setIsErrorPopupOpen] = useState(false); 
+  const [status, setStatus] = useState<Status>('idle');
+  const [errorInfo, setErrorInfo] = useState<{ title: string; message: string } | null>(null);
 
-  // Refs for auto-scroll and input focus
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  // Session resources
+  const wsRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const micCtxRef = useRef<AudioContext | null>(null);
+  const micSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const playbackCtxRef = useRef<AudioContext | null>(null);
+  const playingSourcesRef = useRef<AudioBufferSourceNode[]>([]);
+  const nextStartRef = useRef(0);
+  const lastEndRef = useRef(0); // scheduled end time of the last queued chunk
+  const playbackTokenRef = useRef(0); // bumped on stopPlayback to cancel stale done-timers
+  const doneTimerRef = useRef<number | null>(null);
+  const speakingRef = useRef(false);   // bot audio is streaming/playing (barge-in armed)
+  const bargeArmAtRef = useRef(0);     // when the current playback started
+  const vadRef = useRef<MicVAD | null>(null); // Silero VAD (neural speech detection)
+  // Voice-reactive avatar: analysers on the mic and playback graphs feed CSS
+  // variables (--mic-lvl / --tts-lvl) at 60fps without React re-renders
+  const micAnalyserRef = useRef<AnalyserNode | null>(null);
+  const playAnalyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const avatarWrapRef = useRef<HTMLDivElement | null>(null);
+  const closingRef = useRef(false);
 
-  // Auto-Scroll Effect
-  useEffect(() => {
-    messagesEndRef.current?.lastElementChild?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Focus the input when the chat window opens
-  useEffect(() => {
-    if (isOpen) {
-        inputRef.current?.focus();
+  // ---------------- Playback (24 kHz PCM16 -> Float32, gapless queue) ----------------
+  const stopPlayback = useCallback(() => {
+    playbackTokenRef.current += 1;
+    speakingRef.current = false;
+    if (doneTimerRef.current !== null) {
+      window.clearTimeout(doneTimerRef.current);
+      doneTimerRef.current = null;
     }
-  }, [isOpen]); 
+    playingSourcesRef.current.forEach(src => {
+      try { src.stop(); } catch { /* already stopped */ }
+    });
+    playingSourcesRef.current = [];
+    nextStartRef.current = 0;
+    lastEndRef.current = 0;
+  }, []);
 
-  const playAudio = (url: string) => {
+  // Report real end-of-playback to the backend. Kokoro's `complete` arrives
+  // when SYNTHESIS ends, which can be seconds before the browser finishes
+  // playing its queued chunks — the backend's barge-in window must stay open
+  // until actual playback ends, or interruptions during the tail get misread
+  // as new questions.
+  const maybePlaybackDone = useCallback(function maybePlaybackDone() {
+    const ctx = playbackCtxRef.current;
+    const ws = wsRef.current;
+    if (!ctx || !ws || ws.readyState !== WebSocket.OPEN) return;
+    if (playingSourcesRef.current.length > 0) return;
+    const remainingMs = (lastEndRef.current - ctx.currentTime) * 1000;
+    const token = playbackTokenRef.current;
+    if (remainingMs > 30) {
+      // onended fired slightly early relative to the schedule — re-check later
+      doneTimerRef.current = window.setTimeout(() => {
+        if (playbackTokenRef.current === token) maybePlaybackDone();
+      }, remainingMs + 20);
+      return;
+    }
+    doneTimerRef.current = null;
+    speakingRef.current = false; // barge-in window closes with real playback
+    setStatus(prev => (prev === 'speaking' ? 'listening' : prev));
+    ws.send(JSON.stringify({ type: 'playback_done' }));
+  }, []);
+
+  const playChunk = useCallback((int16: Int16Array) => {
+    const ctx = playbackCtxRef.current;
+    if (!ctx) return;
+
+    const float32 = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768.0;
+
+    const buffer = ctx.createBuffer(1, float32.length, TTS_SAMPLE_RATE);
+    buffer.copyToChannel(float32, 0);
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    // Route through the analyser so the avatar glow tracks the bot's voice
+    source.connect(playAnalyserRef.current ?? ctx.destination);
+
+    // Chain chunks back-to-back; resync the schedule if we've fallen behind
+    const now = ctx.currentTime;
+    if (nextStartRef.current < now + 0.05) nextStartRef.current = now + 0.05;
+    source.start(nextStartRef.current);
+    nextStartRef.current += buffer.duration;
+    lastEndRef.current = nextStartRef.current;
+
+    playingSourcesRef.current.push(source);
+    source.onended = () => {
+      playingSourcesRef.current = playingSourcesRef.current.filter(s => s !== source);
+      maybePlaybackDone();
+    };
+  }, [maybePlaybackDone]);
+
+  // ---------------- Mic capture (16 kHz PCM16 binary frames) ----------------
+  const startMic = useCallback(async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        sampleRate: MIC_SAMPLE_RATE,
+        echoCancellation: true,   // also prevents the bot hearing its own TTS
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
+    streamRef.current = stream;
+
+    let ctx: AudioContext;
     try {
-      if (url) {
-        const audio = new Audio(url); 
-        audio.play().catch(error => {
-          console.warn("Audio playback prevented:", error);
-        });
-      }
-    } catch (e) {
-      console.error("Failed to create or play audio object:", e);
+      ctx = new AudioContext({ sampleRate: MIC_SAMPLE_RATE });
+    } catch {
+      ctx = new AudioContext(); // older browsers: resample manually below
     }
-  };
+    micCtxRef.current = ctx;
 
-  /**
-   * Utility function to format raw text (especially structured lists like educational background) 
-   * into clean, structured HTML for better rendering in the chat bubble.
-   * Includes logic to convert **bolded** text to UPPERCASE.
-   */
-  const formatBotResponse = (text: string) => {
-    // Check if the content looks like structured text based on multiple line breaks
-    if (text.trim().includes('\n')) {
-        
-        const lines = text.split('\n').filter(line => line.trim().length > 0);
-        let currentListItems: string[] = [];
-        const listMarkers = /^\s*[\*\-]/m;
+    const source = ctx.createMediaStreamSource(stream);
+    micSourceRef.current = source;
+    // Mic analyser: the avatar bubble tracks the user's voice while listening
+    const micAnalyser = ctx.createAnalyser();
+    micAnalyser.fftSize = 512;
+    source.connect(micAnalyser);
+    micAnalyserRef.current = micAnalyser;
+    const processor = ctx.createScriptProcessor(4096, 1, 1);
+    processorRef.current = processor;
 
-        lines.forEach(line => {
-            let content = line.trim();
-            
-            // 1. Convert markdown bold (**word**) to UPPERCASE and remove the markers.
-            content = content.replace(/\*\*(.*?)\*\*/g, (match, p1) => p1.toUpperCase());
+    const ratio = MIC_SAMPLE_RATE / ctx.sampleRate;
 
-            // 2. Remove list markers (* or -) and any remaining raw double asterisks (if any were missed).
-            content = content.replace(listMarkers, '').replace(/\*\*/g, '').trim(); 
+    // Barge-in run-length state (per session): sustained speech over the bot's
+    // playback cuts the audio immediately and flags the backend
+    let bargeRunMs = 0;
+    let lastBargeAt = 0;
 
-            if (content.length === 0) return;
+    // Silero VAD speech start: fires on real speech even amid noise (the RMS
+    // fallback below triggers on any loud sound). Also reports speech to the
+    // backend, which extends a pending unfinished-turn hold so continued
+    // speech merges into one question.
+    const vadSpeechStart = () => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({ type: 'speech_start' }));
+      const now = performance.now();
+      if (
+        speakingRef.current &&
+        now - lastBargeAt > BARGE_COOLDOWN_MS &&
+        now - bargeArmAtRef.current > BARGE_ARM_DELAY_MS
+      ) {
+        lastBargeAt = now;
+        stopPlayback();
+        setStatus('listening');
+        ws.send(JSON.stringify({ type: 'interrupt' }));
+        console.log('[VOICE] barge-in: Silero VAD speech over playback, cutting audio');
+      }
+    };
 
-            // Heuristically detect major headings (Bachelor, Diploma, etc.) 
-            if (content.toLowerCase().includes('bachelor') || 
-                content.toLowerCase().includes('diploma') ||
-                content.toLowerCase().includes('sslc')) {
-                
-                // Close previous list if any, start a new bold heading
-                if (currentListItems.length > 0 && currentListItems[currentListItems.length - 1].startsWith('<li')) {
-                    currentListItems.push('</ul>');
-                }
-                // Use a proper bold heading (class "text-white font-bold")
-                currentListItems.push(`<p class="mt-2 text-white font-bold">${content}</p><ul class="list-none space-y-0.5">`);
-            } else {
-                // Treat other lines as details using the styled bullet point
-                currentListItems.push(`<li class="ml-2 pl-3 relative before:content-['•'] before:absolute before:left-0 before:text-blue-400 before:font-bold before:text-lg">${content}</li>`);
-            }
-        });
+    processor.onaudioprocess = (event: AudioProcessingEvent) => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-        // Ensure the last list is closed
-        if (currentListItems.length > 0 && currentListItems[currentListItems.length - 1].startsWith('<li')) {
-            currentListItems.push('</ul>');
+      const input = event.inputBuffer.getChannelData(0);
+
+      if (speakingRef.current) {
+        let sum = 0;
+        for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+        const rms = Math.sqrt(sum / input.length);
+        const frameMs = (input.length / ctx.sampleRate) * 1000;
+        bargeRunMs = rms > BARGE_RMS ? bargeRunMs + frameMs : 0;
+        const now = performance.now();
+        if (
+          bargeRunMs >= BARGE_SPEECH_MS &&
+          now - lastBargeAt > BARGE_COOLDOWN_MS &&
+          now - bargeArmAtRef.current > BARGE_ARM_DELAY_MS
+        ) {
+          bargeRunMs = 0;
+          lastBargeAt = now;
+          stopPlayback();
+          setStatus('listening');
+          ws.send(JSON.stringify({ type: 'interrupt' }));
+          console.log('[VOICE] barge-in: speech over playback, cutting audio');
         }
-        
-        // Wrap the final content in a container div
-        return `<div class="p-1">${currentListItems.join('')}</div>`;
-    }
-    
-    // Default to wrapping simple text in a paragraph tag
-    return `<p>${text}</p>`;
-  };
-
-
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-
-    const userMessage = input.trim();
-    setMessages(prev => [...prev, `User: ${userMessage}`]);
-    setInput('');
-    setLoading(true);
-
-    try {
-      const response = await axios.post<BotResponseData>(
-        `${FASTAPI_URL}/chat`, 
-        { user_input: userMessage },
-        // **1. Add the timeout configuration to the axios request**
-        { timeout: CHATBOT_TIMEOUT_MS } 
-      );
-
-      const { response_text, audio_url } = response.data;
-      
-      const botResponse = response_text || 'An unexpected error occurred in the bot.'; 
-      setMessages(prev => [...prev, `Bot: ${botResponse}`]);
-      
-      if (audio_url) {
-        playAudio(audio_url);
-      }
-
-    } catch (error) {
-      console.error('Error fetching chat response:', error);
-      
-      // **2. Check if the error is due to a request timeout (or other connectivity issues)**
-      // The condition checks for a specific axios error code ('ECONNABORTED' or similar in older versions) 
-      // or if the error indicates no response was received (e.g., server offline, CORS issue, or timeout)
-      const isTimeoutOrConnectionError = axios.isAxiosError(error) && 
-        (error.code === 'ECONNABORTED' || !error.response);
-      
-      if (isTimeoutOrConnectionError) {
-          // **3. Fallback message shown in chat history after the 2s timeout is hit**
-          setMessages(prev => [...prev, "Bot: Oops! The bot’s off getting a software spa treatment. Try again after it feels smarter!💆‍♂️😂"]);
-          // **4. Open the custom maintenance popup**
-          setIsErrorPopupOpen(true); 
       } else {
-          // Handle other errors (e.g., 4xx, 5xx status codes received from the server)
-          setMessages(prev => [...prev, "Bot: Something went wrong on the server side. Please try again later."]);
+        bargeRunMs = 0;
       }
-      
-    } finally {
-      setLoading(false);
-      // Ensure focus is restored after the response
-      inputRef.current?.focus(); 
+
+      const outLength = Math.round(input.length * ratio);
+      const resampled = new Float32Array(outLength);
+      for (let i = 0; i < outLength; i++) {
+        const pos = i / ratio;
+        const idx = Math.floor(pos);
+        const frac = pos - idx;
+        const s0 = input[idx] ?? 0;
+        const s1 = input[idx + 1] ?? s0;
+        resampled[i] = s0 + frac * (s1 - s0);
+      }
+
+      const int16 = new Int16Array(outLength);
+      for (let i = 0; i < outLength; i++) {
+        const s = Math.max(-1, Math.min(1, resampled[i]));
+        int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      ws.send(int16.buffer);
+    };
+
+    source.connect(processor);
+    // Destination is required for ScriptProcessor to fire; mute it to avoid echo
+    const silentGain = ctx.createGain();
+    silentGain.gain.value = 0;
+    processor.connect(silentGain);
+    silentGain.connect(ctx.destination);
+
+    // Silero VAD (primary barge-in / speech detector). Dynamic import so the
+    // ONNX runtime stays out of the initial page load; the model and wasm
+    // come from /public/vad. If it fails (old browser, blocked assets) the
+    // RMS detector in onaudioprocess remains the fallback.
+    try {
+      const { MicVAD: MicVADClass } = await import('@ricky0123/vad-web');
+      const vad = await MicVADClass.new({
+        getStream: async () => stream,
+        // Never let the VAD stop our shared mic tracks (its default
+        // pauseStream stops them, which would mute the STT feed too)
+        pauseStream: async () => {},
+        resumeStream: async (s) => s,
+        baseAssetPath: '/vad/',
+        onnxWASMBasePath: '/vad/',
+        model: 'v5',
+        positiveSpeechThreshold: 0.6,
+        negativeSpeechThreshold: 0.4,
+        minSpeechMs: 250,       // ignore coughs and clicks
+        redemptionMs: 700,      // silence allowed before speech "ends"
+        preSpeechPadMs: 300,    // keep the start of the first word
+        onSpeechStart: vadSpeechStart,
+      });
+      await vad.start();
+      vadRef.current = vad;
+    } catch (e) {
+      console.warn('[VOICE] Silero VAD unavailable, falling back to RMS barge-in', e);
     }
+  }, [stopPlayback]);
+
+  const stopMic = useCallback(() => {
+    vadRef.current?.destroy().catch(() => undefined);
+    vadRef.current = null;
+    micAnalyserRef.current = null;
+    processorRef.current?.disconnect();
+    micSourceRef.current?.disconnect();
+    processorRef.current = null;
+    micSourceRef.current = null;
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+    micCtxRef.current?.close().catch(() => undefined);
+    micCtxRef.current = null;
+  }, []);
+
+  // ---------------- Session lifecycle ----------------
+  const showError = useCallback((title: string, message: string) => {
+    setErrorInfo({ title, message });
+    setStatus('error');
+    stopMic();
+    stopPlayback();
+  }, [stopMic, stopPlayback]);
+
+  const startSession = useCallback(async () => {
+    setStatus('connecting');
+    setErrorInfo(null);
+    closingRef.current = false;
+
+    // Ask for mic permission first, then connect
+    try {
+      await startMic();
+    } catch {
+      showError('Microphone Access Needed', 'Please allow microphone access in your browser to talk to me.');
+      return;
+    }
+
+    // Playback context for Kokoro's 24 kHz PCM16 audio
+    try {
+      playbackCtxRef.current = new AudioContext({ sampleRate: TTS_SAMPLE_RATE });
+    } catch {
+      playbackCtxRef.current = new AudioContext();
+    }
+    nextStartRef.current = 0;
+
+    // Playback analyser feeds the avatar glow while the bot speaks
+    const playAnalyser = playbackCtxRef.current.createAnalyser();
+    playAnalyser.fftSize = 512;
+    playAnalyser.connect(playbackCtxRef.current.destination);
+    playAnalyserRef.current = playAnalyser;
+
+    // 60fps avatar driver: fast attack, slow release, written straight to CSS
+    // variables so the effects track the voice without React re-renders
+    const micBuf = new Uint8Array(256);
+    const playBuf = new Uint8Array(256);
+    let micLvl = 0;
+    let ttsLvl = 0;
+    const tick = () => {
+      micLvl = Math.max(analyserRms(micAnalyserRef.current, micBuf) * 5, micLvl * 0.85);
+      ttsLvl = Math.max(analyserRms(playAnalyserRef.current, playBuf) * 5, ttsLvl * 0.85);
+      const el = avatarWrapRef.current;
+      if (el) {
+        el.style.setProperty('--mic-lvl', Math.min(1, micLvl).toFixed(3));
+        el.style.setProperty('--tts-lvl', Math.min(1, ttsLvl).toFixed(3));
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+
+    const ws = new WebSocket(VOICE_WS_URL);
+    ws.binaryType = 'arraybuffer';
+    wsRef.current = ws;
+
+    ws.onopen = () => console.log('[VOICE] connected to', VOICE_WS_URL);
+
+    ws.onmessage = (event) => {
+      if (typeof event.data === 'string') {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+          case 'ready':
+            setStatus('listening');
+            break;
+          case 'thinking':
+            speakingRef.current = false;
+            setStatus('thinking');
+            break;
+          case 'speaking':
+            setStatus('speaking');
+            break;
+          // speaking_done is gone: the browser knows when playback actually
+          // ends and reports `playback_done` to the backend itself
+          case 'interruption':
+            stopPlayback();
+            setStatus('listening');
+            break;
+          case 'error':
+            showError('Voice Assistant Unavailable', data.message ?? 'Something went wrong.');
+            break;
+        }
+      } else if (event.data instanceof ArrayBuffer) {
+        // First audio chunk opens the barge-in window (armed after a short
+        // AEC-convergence delay so the bot never interrupts itself)
+        if (!speakingRef.current) {
+          speakingRef.current = true;
+          bargeArmAtRef.current = performance.now();
+        }
+        playChunk(new Int16Array(event.data));
+      }
+    };
+
+    ws.onerror = () => {
+      if (!closingRef.current) {
+        showError('Voice Assistant Unavailable', 'Could not reach the voice backend. It may be offline.');
+      }
+    };
+
+    ws.onclose = () => {
+      if (!closingRef.current) {
+        showError('Voice Assistant Unavailable', 'The voice connection was closed. Please try again.');
+      }
+    };
+  }, [playChunk, showError, startMic, stopPlayback]);
+
+  const stopSession = useCallback(() => {
+    closingRef.current = true;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    playAnalyserRef.current = null;
+    wsRef.current?.close();
+    wsRef.current = null;
+    stopMic();
+    stopPlayback();
+    playbackCtxRef.current?.close().catch(() => undefined);
+    playbackCtxRef.current = null;
+    setStatus('idle');
+    setErrorInfo(null);
+  }, [stopMic, stopPlayback]);
+
+  const toggleOpen = useCallback(() => {
+    if (isOpen) {
+      stopSession();
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+      startSession();
+    }
+  }, [isOpen, startSession, stopSession]);
+
+  // Cleanup if the component unmounts mid-session
+  useEffect(() => stopSession, [stopSession]);
+
+  const statusLabel: Record<Status, string> = {
+    idle: 'Offline',
+    connecting: 'Connecting…',
+    listening: 'Listening… speak now',
+    thinking: 'Thinking…',
+    speaking: 'Speaking… (interrupt anytime)',
+    error: 'Error',
   };
-  
+  const dotColor: Record<Status, string> = {
+    idle: 'bg-gray-500',
+    connecting: 'bg-crimson-400 animate-pulse',
+    listening: 'bg-forest-500 animate-pulse',
+    thinking: 'bg-forest-500 animate-pulse',
+    speaking: 'bg-crimson-500 animate-pulse',
+    error: 'bg-red-500',
+  };
+
   return (
-    <div className="fixed bottom-4 right-4 z-[9999]"> 
-        
-        {/* Chat Toggle Button - Pure Black background */}
-        <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="
-                w-14 h-14 rounded-full bg-black text-white shadow-lg 
-                flex items-center justify-center transition-transform duration-300 
-                hover:scale-110 focus:outline-none 
-                relative z-50 p-0 overflow-hidden 
-            "
-        >
-            {isOpen ? (
-                <X size={24} className="text-white" />
-            ) : (
-                <img 
-                    src={SRIHARAN_IMAGE_URL} 
-                    alt="Sriharan Chatbot Icon" 
-                    className="w-full h-full object-cover rounded-full"
-                />
-            )}
-        </button>
+    // bottom/right-12 (48px): the ring extends 40px past the button, so the
+    // old 28px margin clipped it at the screen corner
+    <div className="fixed bottom-12 right-12 z-[9999]">
+      {/* Component-scoped styles: the rotating ring + voice-reactive avatar.
+          --mic-lvl / --tts-lvl (0..1) are written every frame by the rAF loop
+          in startSession, so these effects track the actual audio. */}
+      <style>{`
+        @keyframes voice-spin { to { transform: rotate(360deg); } }
+        .voice-ring { animation: voice-spin 14s linear infinite; }
+        .avatar-bubble { transform: scale(calc(1 + var(--mic-lvl, 0) * 0.25)); }
+        .avatar-glow {
+          opacity: calc(var(--tts-lvl, 0) * 0.85);
+          /* translate before scale = constant optical nudge (up-left) at any scale */
+          transform: translate(-2px, -3px) scale(calc(0.75 + var(--tts-lvl, 0) * 0.55));
+        }
+        .avatar-ring {
+          opacity: calc(var(--tts-lvl, 0) * 0.9);
+          transform: translate(-2px, -3px) scale(calc(1 + var(--tts-lvl, 0) * 0.3));
+        }
+        @keyframes think-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+        .thinking-pulse { animation: think-pulse 1.8s ease-in-out infinite; }
+      `}</style>
 
-        {/* Chat Window Container - Pure Black background, blue text */}
-        {isOpen && (
-            <div 
-                className="
-                    absolute bottom-0 right-0 transform translate-y-[-70px] 
-                    w-80 h-[450px] bg-black text-blue-400 rounded-lg 
-                    shadow-2xl flex flex-col overflow-hidden border border-gray-700
-                "
+      {/* Voice Toggle Button — photo with a rotating "talk to me" ring */}
+      <div className="relative">
+        {!isOpen && (
+          // Explicit size + negative offset (NOT w-full/-inset-*): the svg is a
+          // replaced element, so w-full there shrank it to the button's 80px and
+          // shifted the ring off-centre. 160px box on an 80px button = -40px.
+          <svg
+            className="voice-ring absolute -left-10 -top-10 w-40 h-40 pointer-events-none"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <defs>
+              <path
+                id="talk-circle"
+                fill="none"
+                d="M 50,50 m -42,0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0"
+              />
+            </defs>
+            <text
+              className="fill-white/90"
+              style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'monospace' }}
             >
-                {/* Maintenance Popup / Modal */}
-                {isErrorPopupOpen && (
-                    <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-4 z-20 rounded-lg">
-                        {/* Using the user's image as the icon */}
-                        <div className="w-20 h-20 rounded-full border-4 border-blue-600 mb-4 overflow-hidden">
-                             <img src={SRIHARAN_IMAGE_URL} alt="Bot Icon" className="w-full h-full object-cover" />
-                        </div>
-                        <p className="text-white text-xl font-bold text-center mb-2 font-serif">
-                            System Maintenance
-                        </p>
-                        <p className="text-blue-400 text-center text-sm font-mono mb-6">
-                            The chatbot backend is temporarily offline. 
-                            <br />
-                            It will be back online soon!
-                        </p>
-                        <button
-                            onClick={() => setIsErrorPopupOpen(false)}
-                            className="bg-blue-600 text-white p-2 px-4 rounded-md hover:bg-blue-700 transition font-mono"
-                        >
-                            Dismiss
-                        </button>
-                    </div>
-                )}
-                
-                {/* Chat Header - Changed to font-serif, text-xl, and font-bold */}
-                <div className="p-3 bg-black text-blue-400 font-serif text-xl font-bold flex justify-between items-center border-b border-gray-700">
-                    Chat with Sriharan's Bot
-                    <button onClick={() => setIsOpen(false)} className="text-blue-400/80 hover:text-blue-300">
-                        <X size={20} />
-                    </button>
-                </div>
-
-                {/* Chat Messages Area - Dark Gray background for message history (slight differentiation) */}
-                <div ref={messagesEndRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-900">
-                    {messages.length === 0 && (
-                        <p className="text-blue-400/70 text-sm">Hello! I'm Sriharan Personel Bot. Ask something about my Boss</p>
-                    )}
-                    {messages.map((msg, index) => {
-                        const isBotMessage = msg.startsWith('Bot:');
-                        const content = msg.replace('User: ', '').replace('Bot: ', '');
-
-                        return (
-                            // Message Bubbles
-                            <div 
-                                key={index} 
-                                className={`max-w-[85%] p-2 rounded-lg text-sm ${
-                                    isBotMessage 
-                                        ? 'mr-auto bg-gray-800 text-blue-400 font-mono'
-                                        : 'ml-auto bg-blue-600 text-white' 
-                                }`}
-                            >
-                                {/* Apply formatting ONLY to bot messages */}
-                                {isBotMessage ? (
-                                    // ⚠️ Using dangerouslySetInnerHTML to render the formatted HTML
-                                    <div dangerouslySetInnerHTML={{ __html: formatBotResponse(content) }} />
-                                ) : (
-                                    // User messages are rendered as plain text
-                                    content
-                                )}
-                            </div>
-                        );
-                    })}
-                    {loading && (
-                         <div className="text-center text-sm text-blue-400/70">Bot is typing...</div>
-                    )}
-                </div>
-                
-                {/* Chat Input */}
-                <div className="p-3 border-t border-gray-700 flex gap-2">
-                    <input
-                        ref={inputRef} 
-                        type="text"
-                        placeholder="Type a message..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                        disabled={loading || isErrorPopupOpen}
-                        // Input focus ring changed to blue
-                        className="flex-1 p-2 border border-gray-600 rounded-md bg-black text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
-                    />
-                    {/* Send Button - Upgraded to look smarter/circular with icon */}
-                    <button 
-                        onClick={sendMessage} 
-                        onMouseDown={(e) => e.preventDefault()}
-                        disabled={loading || isErrorPopupOpen}
-                        className="
-                            bg-blue-600 text-white p-3 rounded-full shadow-lg border border-blue-400
-                            hover:bg-blue-700 hover:scale-105 transition duration-200 ease-in-out
-                            flex items-center justify-center disabled:opacity-50
-                        "
-                    >
-                        <Send size={20} />
-                    </button>
-                </div>
-            </div>
+              <textPath href="#talk-circle" textLength="262">
+                Talk to me • Talk to me •
+              </textPath>
+            </text>
+          </svg>
         )}
+        <button
+          onClick={toggleOpen}
+          className="
+              w-20 h-20 rounded-full bg-black text-white shadow-lg
+              flex items-center justify-center transition-transform duration-300
+              hover:scale-110 focus:outline-none
+              relative z-50 p-0 overflow-hidden border border-white/20
+          "
+        >
+          {isOpen ? (
+            <X size={28} className="text-white" />
+          ) : (
+            <img
+              src={SRIHARAN_IMAGE_URL}
+              alt="Sriharan Voice Bot Icon"
+              className="w-full h-full object-cover rounded-full"
+            />
+          )}
+        </button>
+      </div>
+
+      {/* Voice Window — transparent glass, avatar centred */}
+      {isOpen && (
+        <div
+          className="
+              absolute bottom-0 right-0 transform translate-y-[-112px]
+              w-80 h-[380px] bg-transparent backdrop-blur-2xl text-forest-400 rounded-3xl
+              shadow-2xl flex flex-col overflow-hidden border border-white/15
+          "
+        >
+          {/* Error / Maintenance Popup */}
+          {errorInfo && (
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-xl flex flex-col items-center justify-center p-4 z-20">
+              <div className="w-20 h-20 rounded-full border-4 border-forest-600 mb-4 overflow-hidden">
+                <img src={SRIHARAN_IMAGE_URL} alt="Bot Icon" className="w-full h-full object-cover" />
+              </div>
+              <p className="text-white text-xl font-bold text-center mb-2 font-serif">
+                {errorInfo.title}
+              </p>
+              <p className="text-forest-400 text-center text-sm font-mono mb-6">
+                {errorInfo.message}
+                <br />
+                Please try again later!
+              </p>
+              <button
+                onClick={() => {
+                  stopSession();
+                  setIsOpen(false);
+                }}
+                className="bg-forest-600 text-white p-2 px-4 rounded-md hover:bg-forest-700 transition font-mono"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {/* Header */}
+          <div className="px-4 py-2.5 flex justify-between items-center border-b border-white/10 bg-white/5">
+            <span className="font-serif text-base font-bold text-forest-300">
+              Talk with Sriharan&apos;s Bot
+            </span>
+            <button onClick={toggleOpen} className="text-forest-400/80 hover:text-forest-300">
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Avatar stage — photo bubbles with the user's voice while
+              listening, glows with the bot's voice while speaking. The glow
+              and ring anchor to the photo box with negative insets; as bare
+              absolute children of this flex stage their static position lands
+              at the stage centre, ~16px below the photo's centre. */}
+          <div ref={avatarWrapRef} className="relative flex-1 flex flex-col items-center justify-center gap-3 px-4">
+            <div className="relative w-28 h-28">
+              <div className="avatar-glow absolute -inset-8 rounded-full bg-forest-400/60 blur-2xl pointer-events-none" />
+              <div className="avatar-ring absolute -inset-2 rounded-full border-2 border-forest-400 pointer-events-none" />
+              <img
+                src={SRIHARAN_IMAGE_URL}
+                alt="Sriharan"
+                className={`relative w-28 h-28 rounded-full object-cover border-2 border-white/25 shadow-xl ${
+                  status === 'listening' ? 'avatar-bubble' : ''
+                } ${status === 'thinking' ? 'thinking-pulse' : ''}`}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Mic size={14} className={status === 'listening' ? 'text-forest-400' : 'text-forest-400/60'} />
+              <span className="text-sm font-mono text-forest-300">{statusLabel[status]}</span>
+              <span className={`w-2 h-2 rounded-full ${dotColor[status]}`} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
