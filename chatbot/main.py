@@ -15,6 +15,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 from dotenv import load_dotenv
 
+from voice_ws import router as voice_ws_router, set_answer_provider
+from llm_ollama import ask_ollama
+
 # -------------------- Load environment variables --------------------
 load_dotenv()
 
@@ -23,6 +26,8 @@ PDF_FILE_PATH = os.getenv("FILE_PATH", "")  # your single PDF file
 if PDF_FILE_PATH and not os.path.isabs(PDF_FILE_PATH):
     PDF_FILE_PATH = os.path.join(os.path.dirname(__file__), PDF_FILE_PATH)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+# LLM provider: "gemini" (cloud/paid) or "ollama" (local/open-source, llm_ollama.py)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").strip().lower()
 TTS_URL = os.getenv("TTS_URL", "")
 FASTAPI_PORT = int(os.getenv("FASTAPI_PORT", 8000))
 
@@ -163,21 +168,27 @@ def normalize_text_case(text: str) -> str:
 async def startup_event():
     global client, embedder
     print("🚀 Initializing lightweight RAG chatbot...")
+    print(f"🧠 LLM provider: {LLM_PROVIDER}")
 
-    # Initialize Gemini
-    try:
-        if not GEMINI_API_KEY:
-            raise ValueError("Missing GEMINI_API_KEY")
-        client = google.genai.Client(api_key=GEMINI_API_KEY)
-        print("✅ Gemini client ready.")
-    except Exception as e:
-        print(f"❌ Gemini init error: {e}")
-        client = None
+    # Initialize the cloud LLM (Gemini) — only needed when LLM_PROVIDER=gemini;
+    # the local Ollama provider (llm_ollama.py) answers otherwise
+    if LLM_PROVIDER == "gemini":
+        try:
+            if not GEMINI_API_KEY:
+                raise ValueError("Missing GEMINI_API_KEY")
+            client = google.genai.Client(api_key=GEMINI_API_KEY)
+            print("✅ Gemini client ready.")
+        except Exception as e:
+            print(f"❌ Gemini init error: {e}")
+            client = None
+    else:
+        print("🧠 Gemini client skipped (ollama is the answering provider).")
 
-    # Load smaller embedding model
+    # Load smaller embedding model (CPU: it only embeds one query per turn, and
+    # GPU memory is scarce next to Whisper + Kokoro on the 6GB laptop GPU)
     try:
-        embedder = SentenceTransformer("paraphrase-MiniLM-L3-v2")
-        print("✅ Loaded small embedding model (MiniLM-L3-v2).")
+        embedder = SentenceTransformer("paraphrase-MiniLM-L3-v2", device="cpu")
+        print("✅ Loaded small embedding model (MiniLM-L3-v2) on CPU.")
     except Exception as e:
         print(f"❌ Error loading model: {e}")
         embedder = None
@@ -189,36 +200,62 @@ async def startup_event():
         print(f"⚠️ PDF file not found: {PDF_FILE_PATH}")
 
 
+# -------------------- Answer Generation (shared by /chat and voice WS) --------------------
+def generate_answer(user_input: str) -> str:
+    """RAG retrieve + LLM answer (Gemini cloud or Ollama local, per LLM_PROVIDER).
+    Blocking; async callers should run it via asyncio.to_thread."""
+    if LLM_PROVIDER == "gemini" and client is None:
+        raise RuntimeError("Gemini not initialized.")
+    if index is None:
+        raise RuntimeError("FAISS index missing. Check PDF file.")
+
+    context = "\n".join(retrieve_context(user_input))
+
+    # Persona rules are shared by both providers; the cloud prompt is unchanged.
+    rules = (
+        "You are Sriharan Vijayakumar. Always respond in first person as Sriharan. "
+        "Never identify yourself as an AI, assistant, chatbot, or language model.\n\n"
+        "Answer strictly using the resume context provided. Never invent facts or use external knowledge. "
+        "Never mention the resume, context, or document.\n\n"
+        "If asked who you are, reply: \"I am Sriharan Vijayakumar\" followed by one short sentence "
+        "describing your professional background from the context.\n\n"
+        "If the question is unrelated to Sriharan's professional background, skills, projects, or experience, "
+        "politely refuse with a short, playful response. Example: \"Ha ha! My boss allows me to talk only "
+        "about Sriharan. Ask me about his projects or skills!\"\n\n"
+        "Keep every answer concise, natural for speech, and limited to 1–2 sentences. "
+        "No markdown, lists, or unnecessary explanations."
+    )
+    body = f"Context:\n{context}\n\nQuestion:\n{user_input}"
+
+    if LLM_PROVIDER == "ollama":
+        answer = ask_ollama(rules, body)
+    else:
+        prompt = f"{rules}\n\n{body}\n\nAnswer:"
+        response = client.models.generate_content(
+            model="gemini-3.1-flash-lite",
+            contents=[prompt],
+            config=google.genai.types.GenerateContentConfig(temperature=0.7)
+        )
+        answer = response.text.strip()
+
+    # ✅ Fix uppercase responses
+    return normalize_text_case(answer)
+
+
+# -------------------- Voice WebSocket (browser ↔ Whisper STT ↔ Gemini ↔ Kokoro TTS) --------------------
+set_answer_provider(generate_answer)
+app.include_router(voice_ws_router)
+
+
 # -------------------- Chat Endpoint --------------------
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
-    global client
-    if client is None:
-        raise HTTPException(status_code=503, detail="Gemini not initialized.")
-    if index is None:
-        raise HTTPException(status_code=503, detail="FAISS index missing. Check PDF file.")
-
     user_input = request.user_input
-    context = "\n".join(retrieve_context(user_input))
-
-    prompt = (
-        "You are a polite assistant. Answer the user's question directly and confidently, "
-        "as if the information is your own knowledge. **DO NOT mention the context, the document, or the source of your information.**\n\n"
-        f"Context:\n{context}\n\nQuestion: {user_input}"
-    )
 
     MAX_RETRIES = 3
     for attempt in range(MAX_RETRIES):
         try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[prompt],
-                config=google.genai.types.GenerateContentConfig(temperature=0.7)
-            )
-            answer = response.text.strip()
-
-            # ✅ Fix uppercase responses
-            answer = normalize_text_case(answer)
+            answer = generate_answer(user_input)
 
             # Try TTS but don't block response if it fails
             audio_url = None
@@ -229,6 +266,9 @@ async def chat_endpoint(request: ChatRequest):
                 audio_url = None
 
             return ChatResponse(response_text=answer, audio_url=audio_url)
+        except RuntimeError as e:
+            # Missing Gemini/FAISS initialization is not retryable
+            raise HTTPException(status_code=503, detail=str(e))
         except Exception as e:
             print(f"Gemini error (attempt {attempt + 1}): {e}")
             if attempt == MAX_RETRIES - 1:

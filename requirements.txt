@@ -1,5 +1,9 @@
 fastapi==0.115.0
 uvicorn==0.30.6
+# WebSocket client (voice relay to Whisper/Kokoro) + uvicorn WS server support
+websockets==13.1
+# Fish Audio TTS-live protocol (msgpack frames, only used when TTS_PROVIDER=fish)
+msgpack>=1.0.5
 google-genai==1.39.1
 sentence-transformers==5.1.1
 faiss-cpu==1.12.0
