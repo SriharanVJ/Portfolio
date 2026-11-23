@@ -147,6 +147,13 @@ async def voice_endpoint(browser_ws: WebSocket):
         "ignore_finals_until": 0.0,
         "turn_timer": None,
         "held_texts": [],
+        # Latency bookkeeping (read by run_answer for the [TIMING] log line):
+        # turn_no numbers each answer of the session; stt_final_s/hold_s are
+        # recorded by stt_murf while the user was speaking (None = no STT data,
+        # e.g. the opening greeting)
+        "turn_no": 0,
+        "stt_final_s": None,
+        "stt_hold_s": None,
     }
 
     try:
@@ -186,14 +193,40 @@ async def voice_endpoint(browser_ws: WebSocket):
             await _safe_send_json(browser_ws, {"type": "ready"})
 
         # ---- Run RAG + Gemini for a finished user turn, then stream TTS back ----
-        async def run_answer(user_text: str):
+        async def run_answer(user_text: str, turn_no: int):
             my_gen = state["gen"]
             tts_ws = None
-            print(f"[VOICE] turn: '{user_text[:80]}'")
+            # Stage stopwatch: everything the user waits for between the server
+            # deciding the turn is over and the first word of audio reaching them.
+            t_turn = time.perf_counter()
+            stage = "answer"
+            timings: dict = {}  # filled by generate_answer: {"rag": s, "llm": s}
+            # STT-side numbers recorded by stt_murf while this turn was spoken:
+            # stt_final_s = Murf's endpointing (last partial -> final), hold_s =
+            # how long the end-of-turn hold sat waiting for a continuation
+            stt_final_s = state.get("stt_final_s")
+            hold_s = state.get("stt_hold_s")
+            q = "greeting" if user_text == GREETING_PROMPT else f"'{user_text[:50]}'"
+
+            def _fmt(v):
+                return f"{v:.2f}s" if isinstance(v, (int, float)) else "-"
+
+            def print_first_voice():
+                e2e = time.perf_counter() - t_turn
+                print(
+                    f"[TIMING] turn #{turn_no} {q}: voice in {e2e:.2f}s = "
+                    f"rag {_fmt(timings.get('rag'))}, llm {_fmt(timings.get('llm'))}, "
+                    f"tts_conn {_fmt(tts_conn_s)}, tts_first {_fmt(first_audio_s)} "
+                    f"(stt {_fmt(stt_final_s)}, hold {_fmt(hold_s)} before this)",
+                    flush=True,
+                )
+
+            print(f"[VOICE] turn #{turn_no}: {q}", flush=True)
             try:
                 # Gemini is a blocking SDK call -> keep it off the event loop
                 try:
-                    answer = await asyncio.to_thread(_answer_provider, user_text)
+                    stage = "answer (rag+llm)"
+                    answer = await asyncio.to_thread(_answer_provider, user_text, timings)
                 except asyncio.CancelledError:
                     raise
                 except Exception as e:
@@ -208,6 +241,8 @@ async def voice_endpoint(browser_ws: WebSocket):
                 await _safe_send_json(browser_ws, {"type": "response", "text": answer, "question": user_text})
 
                 # Fresh TTS connection per answer (see module docstring)
+                stage = "tts connect"
+                t_conn = time.perf_counter()
                 try:
                     if TTS_PROVIDER == "fish":
                         tts_ws = await open_fish_tts()
@@ -219,6 +254,7 @@ async def voice_endpoint(browser_ws: WebSocket):
                         "message": f"TTS service unreachable: {e}",
                     })
                     return
+                tts_conn_s = time.perf_counter() - t_conn
 
                 # Barge-in window opens: bot is audibly speaking
                 state["speaking"] = True
@@ -231,6 +267,8 @@ async def voice_endpoint(browser_ws: WebSocket):
                     await _safe_ws_send(stt_ws, json.dumps({"type": "tts_start"}))
 
                 # Send the whole answer; the TTS service synthesizes and streams back
+                stage = "tts synth"
+                t_text_sent = time.perf_counter()
                 if TTS_PROVIDER == "fish":
                     await send_fish_text(tts_ws, answer)
                 else:
@@ -240,6 +278,9 @@ async def voice_endpoint(browser_ws: WebSocket):
 
                 # ---- Relay TTS audio to the browser ----
                 speaking_sent = False
+                first_audio_s = None
+                t_first_audio = None
+                audio_bytes = 0
                 async for message in tts_ws:
                     if TTS_PROVIDER == "fish":
                         # Fish wraps audio in msgpack AudioEvents (binary frames)
@@ -248,6 +289,10 @@ async def voice_endpoint(browser_ws: WebSocket):
                             if not speaking_sent:
                                 speaking_sent = True
                                 await _safe_send_json(browser_ws, {"type": "speaking"})
+                                first_audio_s = time.perf_counter() - t_text_sent
+                                t_first_audio = time.perf_counter()
+                                print_first_voice()
+                            audio_bytes += len(payload)
                             await browser_ws.send_bytes(payload)
                         elif etype == "finish":
                             if payload and payload != "stop":
@@ -257,11 +302,24 @@ async def voice_endpoint(browser_ws: WebSocket):
                         if not speaking_sent:
                             speaking_sent = True
                             await _safe_send_json(browser_ws, {"type": "speaking"})
+                            first_audio_s = time.perf_counter() - t_text_sent
+                            t_first_audio = time.perf_counter()
+                            print_first_voice()
+                        audio_bytes += len(message)
                         await browser_ws.send_bytes(message)
                     else:
                         msg = json.loads(message)
                         if msg.get("type") == "complete":
                             break
+
+                if t_first_audio is not None:
+                    stream_s = time.perf_counter() - t_first_audio
+                    speech_s = audio_bytes / (2 * 24000)  # 16-bit mono PCM bytes -> seconds
+                    print(
+                        f"[TIMING] turn #{turn_no} audio done: {stream_s:.2f}s streaming, "
+                        f"{speech_s:.1f}s of speech",
+                        flush=True,
+                    )
 
                 # NOTE: no speaking_done here — Kokoro's `complete` only means
                 # SYNTHESIS ended; the browser may still be playing queued
@@ -272,6 +330,11 @@ async def voice_endpoint(browser_ws: WebSocket):
                 # Barge-in (or newer turn): abort synthesis server-side.
                 # Fish has no cancel event — closing the socket stops it;
                 # Kokoro needs `clear` to drop its pending-text buffer.
+                print(
+                    f"[TIMING] turn #{turn_no} cancelled after "
+                    f"{time.perf_counter() - t_turn:.2f}s (during {stage})",
+                    flush=True,
+                )
                 if tts_ws is not None:
                     if TTS_PROVIDER != "fish":
                         await _safe_ws_send(tts_ws, json.dumps({"type": "clear"}))
@@ -288,8 +351,9 @@ async def voice_endpoint(browser_ws: WebSocket):
             if answer_task is not None and not answer_task.done():
                 answer_task.cancel()
             state["gen"] += 1
+            state["turn_no"] += 1
             asyncio.ensure_future(_safe_send_json(browser_ws, {"type": "thinking"}))
-            answer_task = asyncio.ensure_future(run_answer(user_text))
+            answer_task = asyncio.ensure_future(run_answer(user_text, state["turn_no"]))
 
         # Shared by the browser's client-side VAD interrupt, Whisper's
         # `interruption` event and Murf's speech-during-TTS detection: stop the
