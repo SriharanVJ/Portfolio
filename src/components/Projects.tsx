@@ -1,8 +1,21 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Github, Sparkles, TrendingUp, Layers } from 'lucide-react';
+import { Github, Sparkles, TrendingUp, Layers, Eye, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
+interface Project {
+  title: string;
+  description: string;
+  technologies: string[];
+  gradient: string;
+  featured: boolean;
+  githubUrl?: string;
+  liveUrl?: string;
+  image?: string;
+  stats?: Record<string, string>;
+  icon?: string;
+}
 
 export const Projects = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -26,7 +39,7 @@ export const Projects = () => {
     return () => observer.disconnect();
   }, []);
 
-  const projects = [
+  const projects: Project[] = [
     {
       title: 'Voice Agent',
       description: 'Real-time voice agent pipeline over websockets: Whisper speech-to-text, a Gemini LLM in the middle, and Kokoro TTS streaming natural-sounding replies back.',
@@ -38,12 +51,46 @@ export const Projects = () => {
     },
     {
       title: 'IVR System',
-      description: 'Interactive Voice Response flows built on FastAPI and Twilio TWiML — menu-driven call handling through clean webhook endpoints that are easy to extend.',
-      technologies: ['FastAPI', 'Twilio', 'TWiML', 'Python'],
+      description: 'Interactive Voice Response flows built on FastAPI — inbound and outbound call handling over SIP, with Asterisk and LiveKit powering telephony and real-time media.',
+      technologies: ['FastAPI', 'Inbound', 'Outbound', 'SIP', 'LiveKit', 'Asterisk'],
       gradient: 'from-forest-500 to-forest-600',
       featured: true,
       githubUrl: 'https://github.com/SriharanVJ/IVR',
       icon: '☎️'
+    },
+    {
+      title: 'Unified Booking Platform',
+      description: 'Two booking products behind one landing page — luxury fleet browsing with a booking flow, plus driver partner onboarding with live ride matching over WebSocket. JWT/OTP auth, per-module PostgreSQL, orchestrated by Docker Compose.',
+      technologies: ['FastAPI', 'React 19', 'TanStack Start', 'PostgreSQL', 'WebSocket', 'Docker'],
+      gradient: 'from-crimson-500 to-crimson-600',
+      featured: true,
+      githubUrl: 'https://github.com/SriharanVJ/Trip-Booking',
+      icon: '🚗'
+    },
+    {
+      title: 'QuickCommerce Price Comparison',
+      description: 'Search a grocery product once and see prices from Blinkit, Zepto and Swiggy Instamart side by side. FastAPI backend normalizes multi-platform pricing data and serves it to a React frontend through clean search endpoints.',
+      technologies: ['FastAPI', 'React', 'Vite', 'REST API', 'Docker'],
+      gradient: 'from-forest-500 to-forest-600',
+      featured: true,
+      githubUrl: 'https://github.com/SriharanVJ/Product-Comarision',
+      icon: '🛒'
+    },
+    {
+      title: 'Appointment Booking System',
+      description: 'Scheduling system with availability and slot management — customers book appointments through a clean booking flow while an admin console keeps every booking manageable end to end.',
+      technologies: ['FastAPI', 'React', 'PostgreSQL'],
+      gradient: 'from-crimson-500 to-crimson-600',
+      featured: true,
+      icon: '📅'
+    },
+    {
+      title: 'Customer Ticket Portal',
+      description: 'Support portal where customers raise and track tickets while agents resolve them through status workflows — separate customer and agent views over one ticketing API.',
+      technologies: ['FastAPI', 'React', 'PostgreSQL'],
+      gradient: 'from-forest-500 to-forest-600',
+      featured: true,
+      icon: '🎫'
     }
   ];
 
@@ -201,6 +248,7 @@ export const Projects = () => {
               </CardContent>
 
               {/* Card Footer with Action Buttons */}
+              {(project.githubUrl || project.liveUrl) && (
               <CardFooter className="pt-0">
                 <div className="flex gap-4 w-full">
                   {project.githubUrl && (
@@ -241,6 +289,7 @@ export const Projects = () => {
                   )}
                 </div>
               </CardFooter>
+              )}
             </Card>
           ))}
         </div>
